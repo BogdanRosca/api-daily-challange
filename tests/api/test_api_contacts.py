@@ -14,4 +14,4 @@ class TestApiContacts:
         contact = create_contact(api_client, unique_site.mpan, ContactFactory.build(role=ContactRole.BILLING))
         new_email = f"moved.{contact['email']}"
         updated_contact = update_contact(api_client, contact, {"email": new_email})
-        assert updated_contact == {**contact, "email": new_email}
+        assert updated_contact == {**contact, "email": new_email}, f"Changing the email of {contact['id']} changed other details"
