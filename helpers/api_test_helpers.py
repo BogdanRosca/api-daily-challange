@@ -22,8 +22,7 @@ def create_contact(api_client: ControlRoomClient, mpan_core: str, contact_payloa
 def update_contact(api_client: ControlRoomClient, contact: dict[str, Any], contact_changes: dict[str, Any]) -> dict[str, Any]:
     """Changes some of a contact's details and leaves the rest as they are."""
     logging.info(f"Updating {', '.join(contact_changes)} of {contact['id']}")
-    contact_update = {"name": contact["name"], "email": contact["email"], "role": contact["role"], **contact_changes}
-    update_contact_response = api_client.replace_contact(contact["id"], contact_update)
+    update_contact_response = api_client.patch_contact(contact["id"], contact_changes)
     assert update_contact_response.status_code == HTTPStatus.OK, (
         f"Expected {HTTPStatus.OK}, got {update_contact_response.status_code} for {contact['id']}"
     )
