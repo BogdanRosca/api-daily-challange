@@ -1,0 +1,5 @@
+pytest>=9
+tenacity>=9
+tzdata
+ruff
+pyright

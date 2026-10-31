@@ -1,0 +1,7 @@
+{
+  "pythonVersion": "3.14",
+  "include": ["helpers", "resources", "scripts", "tests"],
+  "venvPath": ".",
+  "venv": ".venv",
+  "typeCheckingMode": "standard"
+}

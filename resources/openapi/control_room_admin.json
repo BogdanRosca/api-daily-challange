@@ -1,0 +1,3396 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Control Room admin API",
+    "version": "2026.10.31",
+    "description": "Every Control Room admin operation the daily challenges use, as deployed on QA. Every call needs a bearer token from POST /auth/login, good for 25 requests. Every error carries status, message and request_id."
+  },
+  "servers": [
+    {
+      "url": "https://api.qa.example.internal/control-room/admin"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth"
+    },
+    {
+      "name": "settings"
+    },
+    {
+      "name": "sites"
+    },
+    {
+      "name": "tenders"
+    },
+    {
+      "name": "hedges"
+    },
+    {
+      "name": "invoices"
+    },
+    {
+      "name": "forecasts"
+    },
+    {
+      "name": "contracts"
+    },
+    {
+      "name": "contacts"
+    },
+    {
+      "name": "consumption"
+    },
+    {
+      "name": "alerts"
+    },
+    {
+      "name": "meters"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Log in and get a bearer token, good for 25 requests.",
+        "responses": {
+          "200": {
+            "description": "A token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "get_settings_admin",
+        "tags": [
+          "settings"
+        ],
+        "summary": "Environment-wide settings, shared by every test in a run.",
+        "responses": {
+          "200": {
+            "description": "Settings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "update_settings_admin",
+        "tags": [
+          "settings"
+        ],
+        "summary": "Change a setting. Put it back when you're done.",
+        "responses": {
+          "200": {
+            "description": "Settings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unknown setting or value.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites": {
+      "get": {
+        "operationId": "list_sites_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "Every site on QA.",
+        "responses": {
+          "200": {
+            "description": "Sites.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "site_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BUY",
+                "SELL"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/sites/{mpan_core}": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_site_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "One site, with its current version.",
+        "responses": {
+          "200": {
+            "description": "The site.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch_site_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "Change some of a site's fields.",
+        "responses": {
+          "200": {
+            "description": "The site, with a new version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "If-Match is out of date. Nothing changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "If-Match missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The version you last read."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SitePatchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/deactivation": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "deactivate_site_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "Switch a site off for the rest of the run.",
+        "responses": {
+          "200": {
+            "description": "The site.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/areas": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "create_area_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "Add an area.",
+        "responses": {
+          "201": {
+            "description": "The area.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Area"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Name missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaCreateRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_areas_admin",
+        "tags": [
+          "sites"
+        ],
+        "summary": "A site's areas, A to Z by name ignoring case, then by id.",
+        "responses": {
+          "200": {
+            "description": "Areas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/tenders": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "request_tender_admin",
+        "tags": [
+          "tenders"
+        ],
+        "summary": "Request a tender. Pricing is asynchronous.",
+        "responses": {
+          "201": {
+            "description": "The tender, PENDING.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tender"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The site is inactive.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid contract_months.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenderRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenders/{tender_id}": {
+      "parameters": [
+        {
+          "name": "tender_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "tender_1"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_tender_admin",
+        "tags": [
+          "tenders"
+        ],
+        "summary": "A tender. PRICED after a few reads.",
+        "responses": {
+          "200": {
+            "description": "The tender.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tender"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tender.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hedges": {
+      "post": {
+        "operationId": "upload_hedge_admin",
+        "tags": [
+          "hedges"
+        ],
+        "summary": "Upload a hedge file for one delivery day.",
+        "responses": {
+          "201": {
+            "description": "The hedge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hedge"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Wrong header, more than one day, or the wrong number of settlement periods.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "description": "CSV: delivery_date,settlement_period,volume_mwh"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hedges/{hedge_id}": {
+      "parameters": [
+        {
+          "name": "hedge_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "hedge_1"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_hedge_admin",
+        "tags": [
+          "hedges"
+        ],
+        "summary": "A hedge summary.",
+        "responses": {
+          "200": {
+            "description": "The hedge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hedge"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such hedge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/invoices": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "create_invoice_admin",
+        "tags": [
+          "invoices"
+        ],
+        "summary": "Bill one month.",
+        "responses": {
+          "201": {
+            "description": "The invoice (or the one already stored for this Idempotency-Key).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Gateway timeout. Billing may already have stored the invoice: retry with the same Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Same key on a retry returns the stored invoice instead of billing again."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceCreateRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_invoices_admin",
+        "tags": [
+          "invoices"
+        ],
+        "summary": "A site's invoices, oldest billing month first.",
+        "responses": {
+          "200": {
+            "description": "Invoices.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/forecast-uploads": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "upload_forecast_admin",
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "Upload a forecast file. Checked asynchronously.",
+        "responses": {
+          "202": {
+            "description": "Accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastUploadAccepted"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Empty file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "The site is reserved for manual QA.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastUploadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forecast-uploads/{upload_id}": {
+      "parameters": [
+        {
+          "name": "upload_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "upload_1"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_forecast_upload_admin",
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "An upload's status: QUEUED, PROCESSING, then PROCESSED or FAILED.",
+        "responses": {
+          "200": {
+            "description": "The upload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastUpload"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such upload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/forecast": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_forecast_admin",
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "The stored forecast, oldest day first.",
+        "responses": {
+          "200": {
+            "description": "The forecast.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forecast"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/contracts": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "create_contract_admin",
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Store a supply contract.",
+        "responses": {
+          "201": {
+            "description": "The contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contract"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Overlaps another contract (overlap_policy REJECT).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid, or ends before it starts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractCreateRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_contracts_admin",
+        "tags": [
+          "contracts"
+        ],
+        "summary": "A site's contracts, oldest start_date first, 3 per page.",
+        "responses": {
+          "200": {
+            "description": "One page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contract_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FIXED",
+                "FLEX"
+              ]
+            },
+            "description": "Send the same filter with every page."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "next_cursor from the previous page. Omit for the first page."
+          }
+        ]
+      }
+    },
+    "/sites/{mpan_core}/contacts": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "create_contact_admin",
+        "tags": [
+          "contacts"
+        ],
+        "summary": "Add a contact.",
+        "responses": {
+          "201": {
+            "description": "The contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_contacts_admin",
+        "tags": [
+          "contacts"
+        ],
+        "summary": "A site's contacts. The order is not guaranteed.",
+        "responses": {
+          "200": {
+            "description": "Contacts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PRIMARY",
+                "BILLING",
+                "OPERATIONS"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/contacts/{contact_id}": {
+      "parameters": [
+        {
+          "name": "contact_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "contact_1"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "replace_contact_admin",
+        "tags": [
+          "contacts"
+        ],
+        "summary": "Replace the whole contact. A field you leave out is cleared.",
+        "responses": {
+          "200": {
+            "description": "The contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch_contact_admin",
+        "tags": [
+          "contacts"
+        ],
+        "summary": "Change only the fields you send.",
+        "responses": {
+          "200": {
+            "description": "The contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactPatchRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_contact_admin",
+        "tags": [
+          "contacts"
+        ],
+        "summary": "Delete a contact.",
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "404": {
+            "description": "No such contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "It's the site's last PRIMARY contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/daily-reads": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "submit_daily_reads_admin",
+        "tags": [
+          "consumption"
+        ],
+        "summary": "Store daily totals. A read for a day that already has one replaces it.",
+        "responses": {
+          "201": {
+            "description": "Stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyReadsAccepted"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid read.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyReadsRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/consumption": {
+      "get": {
+        "operationId": "get_consumption_admin",
+        "tags": [
+          "consumption"
+        ],
+        "summary": "Daily totals for the days in [from_date, to_date).",
+        "responses": {
+          "200": {
+            "description": "Daily totals.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consumption"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid range.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "First day, included."
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Day AFTER the last one: excluded. At most 62 days after from_date."
+          },
+          {
+            "name": "mpan_core",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{13}$"
+            },
+            "description": "Only this site. Omit for every site on QA, other customers' included."
+          }
+        ]
+      }
+    },
+    "/sites/{mpan_core}/consumption-summary": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_consumption_summary_admin",
+        "tags": [
+          "consumption"
+        ],
+        "summary": "A month's total, peak day and days with reads.",
+        "responses": {
+          "200": {
+            "description": "The summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumptionSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid month.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            }
+          }
+        ]
+      }
+    },
+    "/sites/{mpan_core}/alert-rules": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "create_alert_rule_admin",
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Create an alert rule.",
+        "responses": {
+          "201": {
+            "description": "The rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertRule"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertRuleRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alert-rules/{rule_id}": {
+      "parameters": [
+        {
+          "name": "rule_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "rule_1"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "get_alert_rule_admin",
+        "tags": [
+          "alerts"
+        ],
+        "summary": "One rule.",
+        "responses": {
+          "200": {
+            "description": "The rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertRule"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_alert_rule_admin",
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Delete a rule.",
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "404": {
+            "description": "No such rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/evaluations": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "evaluate_consumption_admin",
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Send one day's consumption to the alert engine. Rules strictly below the reading fire.",
+        "responses": {
+          "201": {
+            "description": "Triggered rules.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid reading.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate-limited (6 per second, environment-wide). Not processed: retry after retry_after seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{mpan_core}/alerts": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "list_alerts_admin",
+        "tags": [
+          "alerts"
+        ],
+        "summary": "A site's alerts, oldest first, 2 per page.",
+        "responses": {
+          "200": {
+            "description": "One page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "next_cursor from the previous page. Omit for the first page."
+          }
+        ]
+      }
+    },
+    "/sites/{mpan_core}/meters": {
+      "parameters": [
+        {
+          "name": "mpan_core",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]{13}$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "register_meter_admin",
+        "tags": [
+          "meters"
+        ],
+        "summary": "Register a meter.",
+        "responses": {
+          "201": {
+            "description": "The meter: what you sent plus id, mpan_core, status and registered_at.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meter"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Serial number already registered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid meter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeterRegisterRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_meters_admin",
+        "tags": [
+          "meters"
+        ],
+        "summary": "A site's meters in registration order, 5 per page.",
+        "responses": {
+          "200": {
+            "description": "One page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeterPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No site with this MPAN core.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "next_cursor from the previous page. Omit for the first page."
+          }
+        ]
+      }
+    },
+    "/meters/{meter_id}/readings": {
+      "parameters": [
+        {
+          "name": "meter_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "meter_1"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "submit_reading_admin",
+        "tags": [
+          "meters"
+        ],
+        "summary": "Submit a register reading.",
+        "responses": {
+          "201": {
+            "description": "The reading.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reading"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such meter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Malformed, not after the latest, or lower than the latest.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadingRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "list_readings_admin",
+        "tags": [
+          "meters"
+        ],
+        "summary": "Every reading, oldest first.",
+        "responses": {
+          "200": {
+            "description": "Readings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such meter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token. A token is good for 25 requests; log in again for a new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "request_id"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "retry_after": {
+            "type": "number",
+            "description": "429 only: seconds to wait."
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "Settings": {
+        "type": "object",
+        "required": [
+          "overlap_policy"
+        ],
+        "properties": {
+          "overlap_policy": {
+            "type": "string",
+            "enum": [
+              "REJECT",
+              "ALLOW"
+            ]
+          }
+        }
+      },
+      "Site": {
+        "type": "object",
+        "required": [
+          "mpan_core",
+          "name",
+          "site_type",
+          "status",
+          "tags",
+          "contact_email",
+          "version"
+        ],
+        "properties": {
+          "mpan_core": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "site_type": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Opaque. Goes up on every change, not necessarily by one."
+          }
+        }
+      },
+      "SitePatchRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contact_email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "minProperties": 1
+      },
+      "SiteList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Site"
+            }
+          }
+        }
+      },
+      "AreaCreateRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "Area": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AreaList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Area"
+            }
+          }
+        }
+      },
+      "TenderRequest": {
+        "type": "object",
+        "required": [
+          "contract_months"
+        ],
+        "properties": {
+          "contract_months": {
+            "type": "integer",
+            "enum": [
+              12,
+              24,
+              36
+            ]
+          }
+        }
+      },
+      "Tender": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "contract_months",
+          "status",
+          "unit_rate_pence_per_kwh"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "contract_months": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PRICED"
+            ]
+          },
+          "unit_rate_pence_per_kwh": {
+            "type": "number",
+            "nullable": true,
+            "description": "null until PRICED."
+          }
+        }
+      },
+      "Hedge": {
+        "type": "object",
+        "required": [
+          "id",
+          "delivery_date",
+          "period_count",
+          "total_volume_mwh"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "delivery_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_count": {
+            "type": "integer",
+            "description": "48, or 46/50 on clock-change days."
+          },
+          "total_volume_mwh": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceCreateRequest": {
+        "type": "object",
+        "required": [
+          "billing_month",
+          "consumption_kwh",
+          "unit_rate_pence_per_kwh"
+        ],
+        "properties": {
+          "billing_month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "consumption_kwh": {
+            "type": "string",
+            "description": "Decimal (number accepted)."
+          },
+          "unit_rate_pence_per_kwh": {
+            "type": "string",
+            "description": "Decimal (number accepted)."
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "billing_month",
+          "consumption_kwh",
+          "unit_rate_pence_per_kwh",
+          "amount_pence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "billing_month": {
+            "type": "string"
+          },
+          "consumption_kwh": {
+            "type": "string"
+          },
+          "unit_rate_pence_per_kwh": {
+            "type": "string"
+          },
+          "amount_pence": {
+            "type": "integer",
+            "description": "Rounded half away from zero; negative (a credit) for SELL sites."
+          }
+        }
+      },
+      "InvoiceList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            }
+          }
+        }
+      },
+      "ForecastUploadRequest": {
+        "type": "object",
+        "required": [
+          "file_name",
+          "content"
+        ],
+        "properties": {
+          "file_name": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "description": "CSV: header day,period,kwh; periods 1-48; kWh with at most 3 decimal places."
+          }
+        }
+      },
+      "ForecastUploadAccepted": {
+        "type": "object",
+        "required": [
+          "upload_id",
+          "status"
+        ],
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED"
+            ]
+          }
+        }
+      },
+      "ForecastUpload": {
+        "type": "object",
+        "required": [
+          "upload_id",
+          "mpan_core",
+          "file_name",
+          "status",
+          "row_count",
+          "errors"
+        ],
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "PROCESSING",
+              "PROCESSED",
+              "FAILED"
+            ]
+          },
+          "row_count": {
+            "type": "integer",
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ForecastDay": {
+        "type": "object",
+        "required": [
+          "day",
+          "period_count",
+          "total_kwh"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_count": {
+            "type": "integer"
+          },
+          "total_kwh": {
+            "type": "string"
+          }
+        }
+      },
+      "Forecast": {
+        "type": "object",
+        "required": [
+          "mpan_core",
+          "forecast_days"
+        ],
+        "properties": {
+          "mpan_core": {
+            "type": "string"
+          },
+          "forecast_days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastDay"
+            }
+          }
+        }
+      },
+      "ContractCreateRequest": {
+        "type": "object",
+        "required": [
+          "contract_type",
+          "start_at",
+          "end_at"
+        ],
+        "properties": {
+          "contract_type": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "FLEX"
+            ]
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "With a UTC offset."
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "With a UTC offset; after start_at."
+          }
+        }
+      },
+      "Contract": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "contract_type",
+          "start_at",
+          "end_at",
+          "start_date",
+          "end_date"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "contract_type": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "FLEX"
+            ]
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Europe/London date of start_at."
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Europe/London date of end_at."
+          }
+        }
+      },
+      "ContractPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contract"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "null on the last page."
+          }
+        }
+      },
+      "ContactRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "role"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "PRIMARY",
+              "BILLING",
+              "OPERATIONS"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ContactPatchRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "PRIMARY",
+              "BILLING",
+              "OPERATIONS"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "minProperties": 1
+      },
+      "Contact": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "name",
+          "email",
+          "role",
+          "phone"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "PRIMARY",
+              "BILLING",
+              "OPERATIONS"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ContactList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            }
+          }
+        }
+      },
+      "DailyRead": {
+        "type": "object",
+        "required": [
+          "day",
+          "kwh"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "kwh": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]{1,3})?$"
+          }
+        }
+      },
+      "DailyReadsRequest": {
+        "type": "object",
+        "required": [
+          "reads"
+        ],
+        "properties": {
+          "reads": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/DailyRead"
+            }
+          }
+        }
+      },
+      "DailyReadsAccepted": {
+        "type": "object",
+        "required": [
+          "mpan_core",
+          "stored"
+        ],
+        "properties": {
+          "mpan_core": {
+            "type": "string"
+          },
+          "stored": {
+            "type": "integer"
+          }
+        }
+      },
+      "ConsumptionDay": {
+        "type": "object",
+        "required": [
+          "mpan_core",
+          "day",
+          "kwh"
+        ],
+        "properties": {
+          "mpan_core": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "kwh": {
+            "type": "string"
+          }
+        }
+      },
+      "Consumption": {
+        "type": "object",
+        "required": [
+          "days"
+        ],
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumptionDay"
+            },
+            "description": "By day, then MPAN core."
+          }
+        }
+      },
+      "ConsumptionSummary": {
+        "type": "object",
+        "required": [
+          "mpan_core",
+          "month",
+          "total_kwh",
+          "peak_day",
+          "peak_kwh",
+          "days_with_reads"
+        ],
+        "properties": {
+          "mpan_core": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "total_kwh": {
+            "type": "string"
+          },
+          "peak_day": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "The earliest day, if several share the highest total."
+          },
+          "peak_kwh": {
+            "type": "string",
+            "nullable": true
+          },
+          "days_with_reads": {
+            "type": "integer"
+          }
+        }
+      },
+      "AlertRuleRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "threshold_kwh",
+          "channel"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "threshold_kwh": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]{1,3})?$"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "SMS"
+            ]
+          }
+        }
+      },
+      "AlertRule": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "name",
+          "threshold_kwh",
+          "channel"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "threshold_kwh": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "SMS"
+            ]
+          }
+        }
+      },
+      "EvaluationRequest": {
+        "type": "object",
+        "required": [
+          "day",
+          "kwh"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "kwh": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]{1,3})?$"
+          }
+        }
+      },
+      "EvaluationResult": {
+        "type": "object",
+        "required": [
+          "triggered_rule_ids"
+        ],
+        "properties": {
+          "triggered_rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Alert": {
+        "type": "object",
+        "required": [
+          "id",
+          "rule_id",
+          "mpan_core",
+          "day",
+          "kwh",
+          "channel"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "kwh": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "SMS"
+            ]
+          }
+        }
+      },
+      "AlertPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "null on the last page."
+          }
+        }
+      },
+      "MeterRegisterRequest": {
+        "type": "object",
+        "required": [
+          "serial_number",
+          "meter_type",
+          "install_date"
+        ],
+        "properties": {
+          "serial_number": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique across QA."
+          },
+          "meter_type": {
+            "type": "string",
+            "enum": [
+              "SMART",
+              "AMR"
+            ]
+          },
+          "install_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "Meter": {
+        "type": "object",
+        "required": [
+          "id",
+          "mpan_core",
+          "serial_number",
+          "meter_type",
+          "install_date",
+          "status",
+          "registered_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpan_core": {
+            "type": "string"
+          },
+          "serial_number": {
+            "type": "string"
+          },
+          "meter_type": {
+            "type": "string",
+            "enum": [
+              "SMART",
+              "AMR"
+            ]
+          },
+          "install_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PENDING",
+              "DECOMMISSIONED"
+            ],
+            "description": "ACTIVE on registration."
+          },
+          "registered_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MeterPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meter"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "null on the last page."
+          }
+        }
+      },
+      "ReadingRequest": {
+        "type": "object",
+        "required": [
+          "read_at",
+          "register_kwh"
+        ],
+        "properties": {
+          "read_at": {
+            "type": "string",
+            "format": "date",
+            "description": "After the meter's latest reading."
+          },
+          "register_kwh": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]{3}$",
+            "description": "Running total; not lower than the latest."
+          }
+        }
+      },
+      "Reading": {
+        "type": "object",
+        "required": [
+          "id",
+          "meter_id",
+          "read_at",
+          "register_kwh"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "meter_id": {
+            "type": "string"
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "register_kwh": {
+            "type": "string"
+          }
+        }
+      },
+      "ReadingList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reading"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

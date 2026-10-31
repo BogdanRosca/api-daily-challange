@@ -1,0 +1,11 @@
+[
+  {"mpan": "1300123456718", "site_type": "BUY"},
+  {"mpan": "1300123456824", "site_type": "BUY"},
+  {"mpan": "1300555012349", "site_type": "BUY"},
+  {"mpan": "1300555023457", "site_type": "BUY"},
+  {"mpan": "1300555034565", "site_type": "BUY"},
+  {"mpan": "1300555045673", "site_type": "BUY"},
+  {"mpan": "1900987654312", "site_type": "SELL"},
+  {"mpan": "1900987654429", "site_type": "SELL"},
+  {"mpan": "1900987654536", "site_type": "SELL"}
+]
