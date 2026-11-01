@@ -6,9 +6,10 @@ import logging
 from http import HTTPStatus
 from typing import Any
 
-from resources.dependencies.control_room_fake import ControlRoomClient
+from resources.constants.timeouts import EVALUATE_CONSUMPTION_BACKOFF, EVALUATE_CONSUMPTION_TIMEOUT
+from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contact_enums import ContactRole
-
+from tenacity import retry, retry_if_exception, stop_after_delay, wait_fixed
 
 def create_contact(api_client: ControlRoomClient, mpan_core: str, contact_payload: dict[str, Any]) -> dict[str, Any]:
     logging.info(f"Adding a {contact_payload['role']} contact to {mpan_core}")
@@ -45,6 +46,15 @@ def create_alert_rule(api_client: ControlRoomClient, mpan_core: str, alert_rule_
     return create_rule_response.data
 
 
+def _too_many_requests(raised_exception: BaseException) -> bool:
+    return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.TOO_MANY_REQUESTS
+
+@retry(
+    retry=retry_if_exception(_too_many_requests),    
+    stop=stop_after_delay(EVALUATE_CONSUMPTION_TIMEOUT),
+    wait=wait_fixed(EVALUATE_CONSUMPTION_BACKOFF),
+    reraise=True
+)
 def evaluate_day(api_client: ControlRoomClient, mpan_core: str, day: str, kwh: str) -> list[str]:
     """Sends one day's consumption for evaluation and returns the ids of the rules it triggered."""
     logging.info(f"Evaluating {kwh} kWh on {day} for {mpan_core}")
