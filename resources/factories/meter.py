@@ -15,7 +15,7 @@ class MeterFactory:
 
     @classmethod
     def build(cls, meter_type: MeterType = MeterType.SMART) -> dict[str, Any]:
-        meter_payload = cls._base_payload
+        meter_payload = dict(cls._base_payload)
         meter_payload["serial_number"] = f"QA-{uuid.uuid4().hex[:10]}"
         meter_payload["meter_type"] = meter_type.value
         return meter_payload
