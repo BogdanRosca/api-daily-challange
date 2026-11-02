@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 3. Seven meters, one serial number (meters)
+
+`pytest -q` has one failing test: `test_api_a_sites_meters_are_listed_in_registration_order_across_pages`.
+
+Find out why and fix it at the root. Read the fake's docstring (Meters) and the failing request's log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 2. A week of alerts that stops half-way (alerts)
 
 `pytest -q` has one failing test: `test_api_a_week_of_consumption_alerts_only_on_days_above_the_threshold`.

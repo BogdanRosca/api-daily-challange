@@ -80,3 +80,35 @@ def list_site_alerts(api_client: ControlRoomClient, mpan_core: str) -> list[dict
         next_cursor = alerts_page_response.data["next_cursor"]
         if next_cursor is None:
             return site_alerts
+
+
+def register_meter(api_client: ControlRoomClient, mpan_core: str, meter_payload: dict[str, Any]) -> dict[str, Any]:
+    logging.info(f"Registering meter {meter_payload['serial_number']} at {mpan_core}")
+    register_meter_response = api_client.register_meter(mpan_core, meter_payload)
+    assert register_meter_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {register_meter_response.status_code} for {mpan_core}"
+    )
+    return register_meter_response.data
+
+
+def list_site_meters(api_client: ControlRoomClient, mpan_core: str) -> list[dict[str, Any]]:
+    """Every meter of a site in registration order, following the cursor until the last page."""
+    logging.info(f"Checking the meters of {mpan_core}")
+    site_meters: list[dict[str, Any]] = []
+    next_cursor: str | None = None
+    while True:
+        meters_page_response = api_client.list_meters(mpan_core, cursor=next_cursor)
+        assert meters_page_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {meters_page_response.status_code} for {mpan_core}"
+        site_meters.extend(meters_page_response.data["items"])
+        next_cursor = meters_page_response.data["next_cursor"]
+        if next_cursor is None:
+            return site_meters
+
+
+def submit_meter_reading(api_client: ControlRoomClient, meter_id: str, read_at: str, register_kwh: str) -> dict[str, Any]:
+    logging.info(f"Submitting {register_kwh} kWh read on {read_at} for {meter_id}")
+    submit_reading_response = api_client.submit_reading(meter_id, {"read_at": read_at, "register_kwh": register_kwh})
+    assert submit_reading_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {submit_reading_response.status_code} for {meter_id} on {read_at}"
+    )
+    return submit_reading_response.data
