@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 4. A week that adds up to 2,605 kWh (consumption)
+
+`pytest -q` has one failing test: `test_api_a_sites_weekly_consumption_adds_up_the_days_in_the_week_only`.
+
+Find out why and fix it at the root. Read the fake's docstring (Consumption) and the failing request's log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 3. Seven meters, one serial number (meters)
 
 `pytest -q` has one failing test: `test_api_a_sites_meters_are_listed_in_registration_order_across_pages`.
