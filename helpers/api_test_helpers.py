@@ -122,9 +122,9 @@ def submit_daily_reads(api_client: ControlRoomClient, mpan_core: str, kwh_by_day
     )
 
 
-def list_consumption_days(api_client: ControlRoomClient, from_date: str, to_date: str) -> list[dict[str, Any]]:
+def list_consumption_days(api_client: ControlRoomClient, from_date: str, to_date: str, mpan_core: str) -> list[dict[str, Any]]:
     """The daily totals from from_date up to, but not including, to_date."""
     logging.info(f"Checking the consumption from {from_date} to {to_date}")
-    consumption_response = api_client.get_consumption(from_date, to_date)
+    consumption_response = api_client.get_consumption(from_date, to_date, mpan_core)
     assert consumption_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {consumption_response.status_code} from {from_date}"
     return consumption_response.data["days"]

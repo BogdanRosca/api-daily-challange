@@ -20,6 +20,6 @@ class TestApiConsumption:
             "2026-11-08": "12.500",
         }
         submit_daily_reads(api_client, unique_site.mpan, {**week_kwh, "2026-11-01": "99.000", "2026-11-09": "99.000"})
-        weekly_days = list_consumption_days(api_client, "2026-11-02", "2026-11-09")
+        weekly_days = list_consumption_days(api_client, "2026-11-02", "2026-11-09", unique_site.mpan)
         weekly_total = sum((Decimal(consumption_day["kwh"]) for consumption_day in weekly_days), Decimal(0))
         assert weekly_total == sum(map(Decimal, week_kwh.values())), f"The week of {unique_site.mpan} did not add up to its own seven days"
