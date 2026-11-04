@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 5. Two months billed, three invoices (invoices)
+
+`pytest -q` has one failing test: `test_api_two_billed_months_give_two_invoices_with_rounded_amounts`.
+
+Find out why and fix it at the root. Read the fake's docstring (Invoices) and the failing requests' log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and why your retry is safe to repeat.
+
 ## 4. A week that adds up to 2,605 kWh (consumption)
 
 `pytest -q` has one failing test: `test_api_a_sites_weekly_consumption_adds_up_the_days_in_the_week_only`.
