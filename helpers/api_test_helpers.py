@@ -135,13 +135,13 @@ def _gateway_timeout(raised_exception: BaseException) -> bool:
     return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.SERVICE_UNAVAILABLE
 
 
-
 def bill_month(api_client: ControlRoomClient, mpan_core: str, billing_month: str, consumption_kwh: str, unit_rate: str) -> dict[str, Any]:
     """Bills one month of a site and returns the invoice. The billing gateway can time out, so a 503 is sent again."""
-    idempotency_key=str(uuid.uuid4())[:8]
+    idempotency_key = str(uuid.uuid4())
     logging.info(f"Billing {billing_month} for {mpan_core}: {consumption_kwh} kWh at {unit_rate}p with idempotency key {idempotency_key}")
     invoice_payload = {"billing_month": billing_month, "consumption_kwh": consumption_kwh, "unit_rate_pence_per_kwh": unit_rate}
     return _send_invoice(api_client, mpan_core, idempotency_key, invoice_payload)
+
 
 @retry(
     retry=retry_if_exception(_gateway_timeout),
@@ -155,6 +155,7 @@ def _send_invoice(api_client: ControlRoomClient, mpan_core: str, idempotency_key
         f"Expected {HTTPStatus.CREATED}, got {invoice_response.status_code} for {mpan_core} and idempotency key {idempotency_key}"
     )
     return invoice_response.data
+
 
 def list_site_invoices(api_client: ControlRoomClient, mpan_core: str) -> list[dict[str, Any]]:
     """Every invoice of a site, oldest billing month first."""
