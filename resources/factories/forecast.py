@@ -17,5 +17,5 @@ class ForecastFactory:
         forecast_lines = [cls._header]
         for forecast_day in forecast_days:
             for period in range(1, cls._periods_per_day + 1):
-                forecast_lines.append(f"{forecast_day},{period},{kwh_step * period}")
+                forecast_lines.append(f"{forecast_day},{period},{(kwh_step * period):.2f}")
         return {"file_name": f"forecast-{uuid.uuid4().hex[:8]}.csv", "content": "\n".join(forecast_lines) + "\n"}
