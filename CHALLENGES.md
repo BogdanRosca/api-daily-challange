@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 6. A forecast that never arrives (forecasts)
+
+`pytest -q` has one failing test: `test_api_a_processed_two_day_forecast_stores_both_days_with_their_totals`.
+
+Find out why and fix it at the root. Read the fake's docstring (Forecast uploads) and the failing requests' log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 5. Two months billed, three invoices (invoices)
 
 `pytest -q` has one failing test: `test_api_two_billed_months_give_two_invoices_with_rounded_amounts`.
