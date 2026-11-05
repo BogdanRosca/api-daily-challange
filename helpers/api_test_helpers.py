@@ -7,11 +7,19 @@ import uuid
 from http import HTTPStatus
 from typing import Any
 
-from tenacity import retry, retry_if_exception, stop_after_delay, wait_fixed
+from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
 
-from resources.constants.timeouts import BILL_MONTH_BACKOFF, BILL_MONTH_TIMEOUT, EVALUATE_CONSUMPTION_BACKOFF, EVALUATE_CONSUMPTION_TIMEOUT
+from resources.constants.timeouts import (
+    BILL_MONTH_BACKOFF,
+    BILL_MONTH_TIMEOUT,
+    EVALUATE_CONSUMPTION_BACKOFF,
+    EVALUATE_CONSUMPTION_TIMEOUT,
+    FORECAST_UPLOAD_BACKOFF,
+    FORECAST_UPLOAD_TIMEOUT,
+)
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contact_enums import ContactRole
+from resources.enums.forecast_enums import UploadStatus
 
 
 def create_contact(api_client: ControlRoomClient, mpan_core: str, contact_payload: dict[str, Any]) -> dict[str, Any]:
@@ -163,3 +171,41 @@ def list_site_invoices(api_client: ControlRoomClient, mpan_core: str) -> list[di
     list_invoices_response = api_client.list_invoices(mpan_core)
     assert list_invoices_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {list_invoices_response.status_code} for {mpan_core}"
     return list_invoices_response.data["items"]
+
+
+class _UploadNotFinished(Exception):
+    """The upload is still QUEUED or PROCESSING, so the wait goes on."""
+
+
+def upload_forecast(api_client: ControlRoomClient, mpan_core: str, forecast_payload: dict[str, Any]) -> str:
+    """Sends a forecast file and returns the upload id. Processing is asynchronous: wait_for_forecast_upload says when it is done."""
+    logging.info(f"Uploading forecast file {forecast_payload['file_name']} to {mpan_core}")
+    upload_response = api_client.upload_forecast(mpan_core, forecast_payload)
+    assert upload_response.status_code == HTTPStatus.ACCEPTED, f"Expected {HTTPStatus.ACCEPTED}, got {upload_response.status_code} for {mpan_core}"
+    return upload_response.data["upload_id"]
+
+
+@retry(
+    retry=retry_if_exception_type(_UploadNotFinished),
+    stop=stop_after_delay(FORECAST_UPLOAD_TIMEOUT),
+    wait=wait_fixed(FORECAST_UPLOAD_BACKOFF),
+    reraise=True,
+)
+def wait_for_forecast_upload(api_client: ControlRoomClient, upload_id: str) -> dict[str, Any]:
+    """Waits until the upload is PROCESSED and returns it. A FAILED upload will not fix itself, so it fails at once with the row errors."""
+    upload_response = api_client.get_upload(upload_id)
+    assert upload_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {upload_response.status_code} for {upload_id}"
+    upload_status = upload_response.data["status"]
+    logging.info(f"Forecast upload {upload_id} is {upload_status}")
+    assert upload_status != UploadStatus.FAILED, f"Forecast upload {upload_id} FAILED: {upload_response.data['errors']}"
+    if upload_status != UploadStatus.PROCESSED:
+        raise _UploadNotFinished(f"Forecast upload {upload_id} was still {upload_status} after {FORECAST_UPLOAD_TIMEOUT}s")
+    return upload_response.data
+
+
+def list_forecast_days(api_client: ControlRoomClient, mpan_core: str) -> list[dict[str, Any]]:
+    """The forecast days stored for a site, oldest first."""
+    logging.info(f"Checking the forecast of {mpan_core}")
+    forecast_response = api_client.get_forecast(mpan_core)
+    assert forecast_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {forecast_response.status_code} for {mpan_core}"
+    return forecast_response.data["forecast_days"]
