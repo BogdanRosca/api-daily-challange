@@ -47,6 +47,9 @@ def unique_site(data_manager: DataManager, site_type: SiteType | None) -> SiteDa
 
 
 @pytest.fixture(scope="function")
-def overlaps_allowed(api_client: ControlRoomClient) -> OverlapPolicy:
+def overlaps_allowed(api_client: ControlRoomClient) -> Iterator[None]:
     """Lets a test create overlapping contracts. The overlap policy is shared by the whole environment."""
-    return set_overlap_policy(api_client, OverlapPolicy.ALLOW)
+    set_overlap_policy(api_client, OverlapPolicy.ALLOW)
+    yield
+    set_overlap_policy(api_client, OverlapPolicy.REJECT)
+
