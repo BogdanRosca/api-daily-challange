@@ -6,7 +6,9 @@ from collections.abc import Iterator
 
 import pytest
 
+from helpers.api_test_helpers import set_overlap_policy
 from resources.dependencies.control_room_fake import ENV, ControlRoomClient
+from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.site_enums import SiteType
 from resources.utils.config_manager import ConfigManager, UserCredentials
 from resources.utils.test_data_manager import DataManager, SiteData
@@ -42,3 +44,9 @@ def site_type(request: pytest.FixtureRequest) -> SiteType | None:
 @pytest.fixture(scope="function")
 def unique_site(data_manager: DataManager, site_type: SiteType | None) -> SiteData:
     return data_manager.get_next_available_site(site_type=site_type)
+
+
+@pytest.fixture(scope="function")
+def overlaps_allowed(api_client: ControlRoomClient) -> OverlapPolicy:
+    """Lets a test create overlapping contracts. The overlap policy is shared by the whole environment."""
+    return set_overlap_policy(api_client, OverlapPolicy.ALLOW)
