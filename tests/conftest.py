@@ -52,4 +52,3 @@ def overlaps_allowed(api_client: ControlRoomClient) -> Iterator[None]:
     set_overlap_policy(api_client, OverlapPolicy.ALLOW)
     yield
     set_overlap_policy(api_client, OverlapPolicy.REJECT)
-
