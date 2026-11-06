@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 7. A contract that should have been refused (contracts)
+
+`pytest -q` has one failing test: `test_api_a_contract_sharing_one_day_with_an_existing_contract_is_rejected`. Run on its own (`pytest -k rejected`) it passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Supply contracts) and the passing test that runs before it before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed only in the full run and where the bug lives (test, helper or fixture).
+
 ## 6. A forecast that never arrives (forecasts)
 
 `pytest -q` has one failing test: `test_api_a_processed_two_day_forecast_stores_both_days_with_their_totals`.

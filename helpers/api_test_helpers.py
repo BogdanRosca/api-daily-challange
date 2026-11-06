@@ -19,6 +19,7 @@ from resources.constants.timeouts import (
 )
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contact_enums import ContactRole
+from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.forecast_enums import UploadStatus
 
 
@@ -209,3 +210,21 @@ def list_forecast_days(api_client: ControlRoomClient, mpan_core: str) -> list[di
     forecast_response = api_client.get_forecast(mpan_core)
     assert forecast_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {forecast_response.status_code} for {mpan_core}"
     return forecast_response.data["forecast_days"]
+
+
+def create_contract(api_client: ControlRoomClient, mpan_core: str, contract_payload: dict[str, Any]) -> dict[str, Any]:
+    logging.info(f"Adding a {contract_payload['contract_type']} contract to {mpan_core}")
+    create_contract_response = api_client.create_contract(mpan_core, contract_payload)
+    assert create_contract_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {create_contract_response.status_code} for {mpan_core}"
+    )
+    return create_contract_response.data
+
+
+def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPolicy) -> OverlapPolicy:
+    """Changes the environment-wide overlap policy and returns the one it replaced."""
+    previous_policy = OverlapPolicy(api_client.get_settings().data["overlap_policy"])
+    logging.info(f"Changing the overlap policy from {previous_policy} to {overlap_policy}")
+    update_settings_response = api_client.update_settings({"overlap_policy": overlap_policy})
+    assert update_settings_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {update_settings_response.status_code}"
+    return previous_policy
