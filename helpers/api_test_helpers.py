@@ -230,6 +230,21 @@ def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPol
     return previous_policy
 
 
+def get_site(api_client: ControlRoomClient, mpan_core: str) -> dict[str, Any]:
+    logging.info(f"Reading site {mpan_core}")
+    get_site_response = api_client.get_site(mpan_core)
+    assert get_site_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {get_site_response.status_code} for {mpan_core}"
+    return get_site_response.data
+
+
+def update_site(api_client: ControlRoomClient, site: dict[str, Any], site_changes: dict[str, Any]) -> dict[str, Any]:
+    """Changes some of a site's details and returns the site as it now is, ready for the next change."""
+    logging.info(f"Updating {', '.join(site_changes)} of {site['mpan_core']} at version {site['version']}")
+    update_site_response = api_client.patch_site(site["mpan_core"], site_changes, version=site["version"])
+    assert update_site_response.status_code == HTTPStatus.OK, (
+        f"Expected {HTTPStatus.OK}, got {update_site_response.status_code} for {site['mpan_core']}"
+    )
+    return {**site, **site_changes, "version": site["version"] + 1}
 def upload_hedge(api_client: ControlRoomClient, hedge_csv: str) -> dict[str, Any]:
     delivery_date = hedge_csv.splitlines()[1].split(",")[0]
     logging.info(f"Uploading the hedge for {delivery_date}")
