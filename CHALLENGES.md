@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 9. A second change that is always out of date (sites)
+
+`pytest -q` has one failing test: `test_api_renaming_a_site_then_tagging_it_keeps_both_changes`.
+
+Find out why and fix it at the root. Read the fake's docstring (Sites) and the failing requests' log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why the second change failed and where the bug lives (test, helper or fixture).
+
 ## 7. A contract that should have been refused (contracts)
 
 `pytest -q` has one failing test: `test_api_a_contract_sharing_one_day_with_an_existing_contract_is_rejected`. Run on its own (`pytest -k rejected`) it passes.
