@@ -17,16 +17,17 @@ class HedgeFactory:
     @classmethod
     def build(cls, delivery_date: str, volume_mwh: str = "0.500") -> str:
 
+        periods_per_day = cls._periods_per_day
         date_obj = datetime.strptime(delivery_date, "%Y-%m-%d")
 
-        if cls._is_uk_clock_change_day(date_obj) is True:
+        if cls._is_uk_clock_change_day(date_obj):
             if date_obj.month == cls._MARCH:
-                cls._periods_per_day = 46
+                cls.periods_per_day = 46
             else:
-                cls._periods_per_day = 50
+                cls.periods_per_day = 50
 
         hedge_lines = [cls._header]
-        for settlement_period in range(1, cls._periods_per_day + 1):
+        for settlement_period in range(1, cls.periods_per_day + 1):
             hedge_lines.append(f"{delivery_date},{settlement_period},{volume_mwh}")
         return "\n".join(hedge_lines) + "\n"
 
@@ -36,7 +37,7 @@ class HedgeFactory:
         if delivery_date.month not in [cls._MARCH, cls._OCTOBER]:
             return False
 
-        if delivery_date.weekday() is not cls._SUNDAY:
+        if delivery_date.weekday() != cls._SUNDAY:
             return False
 
         if cls._is_last_sunday_of_month(delivery_date):
