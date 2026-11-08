@@ -228,3 +228,13 @@ def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPol
     update_settings_response = api_client.update_settings({"overlap_policy": overlap_policy})
     assert update_settings_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {update_settings_response.status_code}"
     return previous_policy
+
+
+def upload_hedge(api_client: ControlRoomClient, hedge_csv: str) -> dict[str, Any]:
+    delivery_date = hedge_csv.splitlines()[1].split(",")[0]
+    logging.info(f"Uploading the hedge for {delivery_date}")
+    upload_hedge_response = api_client.upload_hedge(hedge_csv)
+    assert upload_hedge_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {upload_hedge_response.status_code} for {delivery_date}"
+    )
+    return upload_hedge_response.data
