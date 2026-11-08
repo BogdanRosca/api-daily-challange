@@ -21,13 +21,10 @@ class HedgeFactory:
         date_obj = datetime.strptime(delivery_date, "%Y-%m-%d")
 
         if cls._is_uk_clock_change_day(date_obj):
-            if date_obj.month == cls._MARCH:
-                cls.periods_per_day = 46
-            else:
-                cls.periods_per_day = 50
+            periods_per_day = 46 if date_obj.month == cls._MARCH else 50
 
         hedge_lines = [cls._header]
-        for settlement_period in range(1, cls.periods_per_day + 1):
+        for settlement_period in range(1, periods_per_day + 1):
             hedge_lines.append(f"{delivery_date},{settlement_period},{volume_mwh}")
         return "\n".join(hedge_lines) + "\n"
 
