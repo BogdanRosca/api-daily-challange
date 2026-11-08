@@ -8,6 +8,12 @@ Newest first. Each one starts from the commit before it; fix it, commit, then as
 
 Find out why and fix it at the root. Read the fake's docstring (Sites) and the failing requests' log before you change anything.
 Done when: the suite is green, `make check` is clean, and you can say in one sentence why the second change failed and where the bug lives (test, helper or fixture).
+## 8. The day the clocks change (hedges)
+
+`pytest -q` has one failing test: `test_api_a_hedge_for_each_clock_change_day_covers_every_settlement_period`.
+
+Find out why and fix it at the root. Read the fake's docstring (Hedges) and the failing request's log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
 
 ## 7. A contract that should have been refused (contracts)
 

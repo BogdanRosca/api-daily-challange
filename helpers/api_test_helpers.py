@@ -245,3 +245,11 @@ def update_site(api_client: ControlRoomClient, site: dict[str, Any], site_change
         f"Expected {HTTPStatus.OK}, got {update_site_response.status_code} for {site['mpan_core']}"
     )
     return {**site, **site_changes, "version": site["version"] + 1}
+def upload_hedge(api_client: ControlRoomClient, hedge_csv: str) -> dict[str, Any]:
+    delivery_date = hedge_csv.splitlines()[1].split(",")[0]
+    logging.info(f"Uploading the hedge for {delivery_date}")
+    upload_hedge_response = api_client.upload_hedge(hedge_csv)
+    assert upload_hedge_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {upload_hedge_response.status_code} for {delivery_date}"
+    )
+    return upload_hedge_response.data
