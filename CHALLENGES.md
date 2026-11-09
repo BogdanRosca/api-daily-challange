@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 10. A token that runs out half-way through the file (tenders)
+
+`pytest -q` has one failing test: `test_api_a_priced_tender_keeps_its_rate_when_read_again`. Run on its own (`pytest -k read_again`) it passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Everywhere) and the failing request's log before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed only in the full run and where the bug lives (test, helper or fixture).
+
 ## 9. A second change that is always out of date (sites)
 
 `pytest -q` has one failing test: `test_api_renaming_a_site_then_tagging_it_keeps_both_changes`.

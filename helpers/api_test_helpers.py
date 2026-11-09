@@ -16,11 +16,14 @@ from resources.constants.timeouts import (
     EVALUATE_CONSUMPTION_TIMEOUT,
     FORECAST_UPLOAD_BACKOFF,
     FORECAST_UPLOAD_TIMEOUT,
+    TENDER_PRICING_BACKOFF,
+    TENDER_PRICING_TIMEOUT,
 )
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contact_enums import ContactRole
 from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.forecast_enums import UploadStatus
+from resources.enums.tender_enums import TenderStatus
 
 
 def create_contact(api_client: ControlRoomClient, mpan_core: str, contact_payload: dict[str, Any]) -> dict[str, Any]:
@@ -255,3 +258,34 @@ def upload_hedge(api_client: ControlRoomClient, hedge_csv: str) -> dict[str, Any
         f"Expected {HTTPStatus.CREATED}, got {upload_hedge_response.status_code} for {delivery_date}"
     )
     return upload_hedge_response.data
+
+
+class _TenderNotPriced(Exception):
+    """The tender is still PENDING, so the wait goes on."""
+
+
+def request_tender(api_client: ControlRoomClient, mpan_core: str, contract_months: int) -> dict[str, Any]:
+    """Asks for a tender and returns it PENDING. Pricing is asynchronous: wait_for_priced_tender says when it is done."""
+    logging.info(f"Requesting a {contract_months}-month tender for {mpan_core}")
+    request_tender_response = api_client.request_tender(mpan_core, {"contract_months": contract_months})
+    assert request_tender_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {request_tender_response.status_code} for {mpan_core}"
+    )
+    return request_tender_response.data
+
+
+@retry(
+    retry=retry_if_exception_type(_TenderNotPriced),
+    stop=stop_after_delay(TENDER_PRICING_TIMEOUT),
+    wait=wait_fixed(TENDER_PRICING_BACKOFF),
+    reraise=True,
+)
+def wait_for_priced_tender(api_client: ControlRoomClient, tender_id: str) -> dict[str, Any]:
+    """Waits until the tender is PRICED and returns it."""
+    get_tender_response = api_client.get_tender(tender_id)
+    assert get_tender_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {get_tender_response.status_code} for {tender_id}"
+    tender_status = get_tender_response.data["status"]
+    logging.info(f"Tender {tender_id} is {tender_status}")
+    if tender_status != TenderStatus.PRICED:
+        raise _TenderNotPriced(f"Tender {tender_id} was still {tender_status} after {TENDER_PRICING_TIMEOUT}s")
+    return get_tender_response.data
