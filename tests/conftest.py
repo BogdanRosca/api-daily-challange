@@ -14,7 +14,7 @@ from resources.utils.config_manager import ConfigManager, UserCredentials
 from resources.utils.test_data_manager import DataManager, SiteData
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def credentials() -> UserCredentials:
     return ConfigManager().user_credentials()
 
