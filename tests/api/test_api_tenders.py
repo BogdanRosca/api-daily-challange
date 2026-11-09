@@ -8,6 +8,7 @@ from resources.enums.tender_enums import TenderStatus
 from resources.utils.config_manager import UserCredentials
 from resources.utils.test_data_manager import DataManager
 
+
 @pytest.mark.tenders
 class TestApiTenders:
     _buy_rate_pence_per_kwh = 24.6
@@ -21,9 +22,7 @@ class TestApiTenders:
         priced_tender = wait_for_priced_tender(api_client, pending_tender["id"])
         assert (pending_tender["status"], priced_tender["unit_rate_pence_per_kwh"]) == (TenderStatus.PENDING, self._buy_rate_pence_per_kwh)
 
-    def test_api_a_tender_for_an_unsupported_contract_length_is_refused(
-        self, api_client: ControlRoomClient, data_manager: DataManager
-    ) -> None:
+    def test_api_a_tender_for_an_unsupported_contract_length_is_refused(self, api_client: ControlRoomClient, data_manager: DataManager) -> None:
         leeds_depot = data_manager.get_fixed_site("Leeds Depot")
         with pytest.raises(ApiError) as refused_tender:
             api_client.request_tender(leeds_depot.mpan, {"contract_months": 18})
@@ -31,9 +30,7 @@ class TestApiTenders:
 
     def test_api_each_contract_length_gets_its_own_priced_tender(self, api_client: ControlRoomClient, data_manager: DataManager) -> None:
         leeds_depot = data_manager.get_fixed_site("Leeds Depot")
-        pending_tenders = [
-            request_tender(api_client, leeds_depot.mpan, contract_months) for contract_months in self._contract_lengths_in_months
-        ]
+        pending_tenders = [request_tender(api_client, leeds_depot.mpan, contract_months) for contract_months in self._contract_lengths_in_months]
         priced_tenders = [wait_for_priced_tender(api_client, pending_tender["id"]) for pending_tender in pending_tenders]
         priced_lengths = [(priced_tender["contract_months"], priced_tender["status"]) for priced_tender in priced_tenders]
         assert priced_lengths == [(contract_months, TenderStatus.PRICED) for contract_months in self._contract_lengths_in_months]
