@@ -21,6 +21,6 @@ class TestApiSites:
     def test_api_a_sites_areas_are_listed_a_to_z_ignoring_case(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
         area_names = ["boiler room", "Cold store", "Annexe", "annexe", "Boiler room"]
         created_areas = [create_area(api_client, unique_site.mpan, AreaFactory.build(area_name)) for area_name in area_names]
-        expected_area_ids = [area["id"] for area in sorted(created_areas, key=lambda area: area["name"])]
+        expected_area_ids = [area["id"] for area in sorted(created_areas, key=lambda area: area["name"].lower())]
         listed_area_ids = [area["id"] for area in list_site_areas(api_client, unique_site.mpan)]
         assert listed_area_ids == expected_area_ids, f"{unique_site.mpan} listed its areas out of order"
