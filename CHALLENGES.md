@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 11. Areas in the wrong order (sites)
+
+`pytest -q` has one failing test: `test_api_a_sites_areas_are_listed_a_to_z_ignoring_case`.
+
+Find out why and fix it at the root. Read the fake's docstring (Sites) and the failing test's output (which ids are swapped?) before you change anything.
+Done when: the suite is green, `make check` is clean, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 10. A token that runs out half-way through the file (tenders)
 
 `pytest -q` has one failing test: `test_api_a_priced_tender_keeps_its_rate_when_read_again`. Run on its own (`pytest -k read_again`) it passes.
