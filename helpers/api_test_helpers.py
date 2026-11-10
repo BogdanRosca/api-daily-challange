@@ -289,3 +289,19 @@ def wait_for_priced_tender(api_client: ControlRoomClient, tender_id: str) -> dic
     if tender_status != TenderStatus.PRICED:
         raise _TenderNotPriced(f"Tender {tender_id} was still {tender_status} after {TENDER_PRICING_TIMEOUT}s")
     return get_tender_response.data
+
+
+def create_area(api_client: ControlRoomClient, mpan_core: str, area_payload: dict[str, Any]) -> dict[str, Any]:
+    logging.info(f"Adding area {area_payload['name']} to {mpan_core}")
+    create_area_response = api_client.create_area(mpan_core, area_payload)
+    assert create_area_response.status_code == HTTPStatus.CREATED, (
+        f"Expected {HTTPStatus.CREATED}, got {create_area_response.status_code} for {mpan_core}"
+    )
+    return create_area_response.data
+
+
+def list_site_areas(api_client: ControlRoomClient, mpan_core: str) -> list[dict[str, Any]]:
+    logging.info(f"Checking the areas of {mpan_core}")
+    list_areas_response = api_client.list_areas(mpan_core)
+    assert list_areas_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {list_areas_response.status_code} for {mpan_core}"
+    return list_areas_response.data["items"]
