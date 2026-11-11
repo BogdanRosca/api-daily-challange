@@ -2,6 +2,14 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 12. March runs into April (contracts)
+
+`pytest -q` has one failing test: `test_api_back_to_back_contracts_either_side_of_the_spring_clock_change_keep_their_uk_dates`.
+The November contract tests next to it pass.
+
+Find out why and fix it at the root. Read the fake's docstring (Supply contracts) and the log line for the March contract (which dates did it store?) before you change anything.
+Done when: the suite is green, `make check` is clean, your fix holds for a contract on any day of the year (not only March and April), and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 11. Areas in the wrong order (sites)
 
 `pytest -q` has one failing test: `test_api_a_sites_areas_are_listed_a_to_z_ignoring_case`.

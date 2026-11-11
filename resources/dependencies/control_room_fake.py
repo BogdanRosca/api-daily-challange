@@ -161,6 +161,7 @@ class QaEnvironment:
         ("1900987654312", "Selby Solar Farm", "SELL"),
         ("1900987654429", "Goole Wind Park", "SELL"),
         ("1900987654536", "Hornsea Offshore", "SELL"),
+        ("1900987654643", "Withernsea Wind Farm", "SELL"),
         ("1300777000119", "Leeds Depot", "BUY"),
         ("1300999000222", "Hull Test Rig", "BUY"),
         ("1900111222333", "Drax Battery Store", "SELL"),
