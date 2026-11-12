@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 
-from helpers.api_test_helpers import set_overlap_policy
+from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, set_overlap_policy
 from resources.dependencies.control_room_fake import ENV, ControlRoomClient
 from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.site_enums import SiteType
+from resources.factories.alert_rule import AlertRuleFactory
 from resources.utils.config_manager import ConfigManager, UserCredentials
 from resources.utils.test_data_manager import DataManager, SiteData
 
@@ -52,3 +54,11 @@ def overlaps_allowed(api_client: ControlRoomClient) -> Iterator[None]:
     set_overlap_policy(api_client, OverlapPolicy.ALLOW)
     yield
     set_overlap_policy(api_client, OverlapPolicy.REJECT)
+
+
+@pytest.fixture(scope="function")
+def alert_rule(api_client: ControlRoomClient, unique_site: SiteData) -> Iterator[dict[str, Any]]:
+    """An EMAIL rule on the test's site that fires above 100 kWh. Deleted in teardown, so it never alerts on anything after the test."""
+    created_rule = create_alert_rule(api_client, unique_site.mpan, AlertRuleFactory.build(threshold_kwh="100.000"))
+    yield created_rule
+    delete_alert_rule(api_client, created_rule["id"])

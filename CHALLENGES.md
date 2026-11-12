@@ -2,6 +2,14 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 13. A clean-up that fails after the test passed (alerts)
+
+`pytest -q` reports `18 passed, 1 error`: `test_api_a_deleted_alert_rule_stops_alerting` passes, then errors in teardown.
+Start from a green suite: this branch includes the Challenge 12 fix from PR #16, so merge #16 first.
+
+Find out why and fix it at the root. Read the fake's docstring (Alerts) and the teardown's log (what did it ask for, and what was already true?) before you change anything.
+Done when: the suite is green, `make check` is clean, a clean-up that meets any error other than "already gone" still fails loudly, and you can say in one sentence why the run was red when every test passed and where the bug lives (test, helper or fixture).
+
 ## 12. March runs into April (contracts)
 
 `pytest -q` has one failing test: `test_api_back_to_back_contracts_either_side_of_the_spring_clock_change_keep_their_uk_dates`.

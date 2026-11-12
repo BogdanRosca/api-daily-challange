@@ -61,6 +61,14 @@ def create_alert_rule(api_client: ControlRoomClient, mpan_core: str, alert_rule_
     return create_rule_response.data
 
 
+def delete_alert_rule(api_client: ControlRoomClient, rule_id: str) -> None:
+    logging.info(f"Deleting alert rule {rule_id}")
+    delete_rule_response = api_client.delete_alert_rule(rule_id)
+    assert delete_rule_response.status_code == HTTPStatus.NO_CONTENT, (
+        f"Expected {HTTPStatus.NO_CONTENT}, got {delete_rule_response.status_code} for {rule_id}"
+    )
+
+
 def _too_many_requests(raised_exception: BaseException) -> bool:
     return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.TOO_MANY_REQUESTS
 

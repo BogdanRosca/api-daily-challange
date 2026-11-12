@@ -64,7 +64,7 @@ Each run starts from a clean environment (like each pytest run); chain calls wit
 
 ## Sites on QA
 
-Pool (`site_data.json`, one per test): eleven BUY (`1300123456718`, `1300123456824`, `1300555012349`, `1300555023457`,
-`1300555034565`, `1300555045673`, `1900987651234` to `1900987651238`) and four SELL (`1900987654312`, `1900987654429`, `1900987654536`, `1900987654643`).
+Pool (`site_data.json`, one per test): twelve BUY (`1300123456718`, `1300123456824`, `1300555012349`, `1300555023457`,
+`1300555034565`, `1300555045673`, `1900987651234` to `1900987651239`) and four SELL (`1900987654312`, `1900987654429`, `1900987654536`, `1900987654643`).
 Not in the pool on purpose: Leeds Depot `1300777000119` (fixed, shared), Hull Test Rig `1300999000222` (manual QA
 only), and Drax Battery Store `1900111222333` (another customer, with reads already on QA).
