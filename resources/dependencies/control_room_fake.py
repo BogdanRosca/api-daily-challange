@@ -158,6 +158,7 @@ class QaEnvironment:
         ("1900987651236", "Camp Nou 3", "BUY"),
         ("1900987651237", "Camp Nou 4", "BUY"),
         ("1900987651238", "Camp Nou 5", "BUY"),
+        ("1900987651239", "Camp Nou 6", "BUY"),
         ("1900987654312", "Selby Solar Farm", "SELL"),
         ("1900987654429", "Goole Wind Park", "SELL"),
         ("1900987654536", "Hornsea Offshore", "SELL"),

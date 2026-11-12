@@ -1,6 +1,8 @@
+from typing import Any
+
 import pytest
 
-from helpers.api_test_helpers import create_alert_rule, evaluate_day, list_site_alerts
+from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, evaluate_day, list_site_alerts
 from resources.dependencies.control_room_fake import ControlRoomClient
 from resources.factories.alert_rule import AlertRuleFactory
 from resources.utils.test_data_manager import SiteData
@@ -24,3 +26,12 @@ class TestApiAlerts:
             evaluate_day(api_client, unique_site.mpan, day, kwh)
         alerted_days = [site_alert["day"] for site_alert in list_site_alerts(api_client, unique_site.mpan)]
         assert alerted_days == ["2026-11-03", "2026-11-04", "2026-11-06", "2026-11-08"], f"Rule {alert_rule['id']} alerted on the wrong days"
+
+    def test_api_a_deleted_alert_rule_stops_alerting(self, api_client: ControlRoomClient, unique_site: SiteData, alert_rule: dict[str, Any]) -> None:
+        triggered_before_delete = evaluate_day(api_client, unique_site.mpan, "2026-11-09", "120.000")
+        delete_alert_rule(api_client, alert_rule["id"])
+        triggered_after_delete = evaluate_day(api_client, unique_site.mpan, "2026-11-10", "120.000")
+        alerted_days = [site_alert["day"] for site_alert in list_site_alerts(api_client, unique_site.mpan)]
+        assert (triggered_before_delete, triggered_after_delete, alerted_days) == ([alert_rule["id"]], [], ["2026-11-09"]), (
+            f"Rule {alert_rule['id']} kept alerting after it was deleted"
+        )
