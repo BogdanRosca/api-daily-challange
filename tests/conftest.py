@@ -6,15 +6,15 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
+from http import HTTPStatus
 
 from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, set_overlap_policy
-from resources.dependencies.control_room_fake import ENV, ControlRoomClient
+from resources.dependencies.control_room_fake import ENV, ApiError, ControlRoomClient
 from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.site_enums import SiteType
 from resources.factories.alert_rule import AlertRuleFactory
 from resources.utils.config_manager import ConfigManager, UserCredentials
 from resources.utils.test_data_manager import DataManager, SiteData
-
 
 @pytest.fixture(scope="session")
 def credentials() -> UserCredentials:
@@ -61,4 +61,7 @@ def alert_rule(api_client: ControlRoomClient, unique_site: SiteData) -> Iterator
     """An EMAIL rule on the test's site that fires above 100 kWh. Deleted in teardown, so it never alerts on anything after the test."""
     created_rule = create_alert_rule(api_client, unique_site.mpan, AlertRuleFactory.build(threshold_kwh="100.000"))
     yield created_rule
-    delete_alert_rule(api_client, created_rule["id"])
+    try:
+        delete_alert_rule(api_client, created_rule["id"])
+    except ApiError as returned_error:
+        assert returned_error.status_code == HTTPStatus.NOT_FOUND, f"Deleting alert rule failed with {returned_error.status_code} status code"
