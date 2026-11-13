@@ -245,7 +245,7 @@ def list_site_contracts(api_client: ControlRoomClient, mpan_core: str, contract_
         next_cursor = contracts_page_response.data["next_cursor"]
         if next_cursor is None:
             return site_contracts
-        contracts_page_response = api_client.list_contracts(mpan_core, cursor=next_cursor)
+        contracts_page_response = api_client.list_contracts(mpan_core, contract_type=contract_type, cursor=next_cursor)
 
 
 def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPolicy) -> OverlapPolicy:
