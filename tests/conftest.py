@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from http import HTTPStatus
 from typing import Any
 
 import pytest
-from http import HTTPStatus
 
 from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, set_overlap_policy
 from resources.dependencies.control_room_fake import ENV, ApiError, ControlRoomClient
@@ -15,6 +15,7 @@ from resources.enums.site_enums import SiteType
 from resources.factories.alert_rule import AlertRuleFactory
 from resources.utils.config_manager import ConfigManager, UserCredentials
 from resources.utils.test_data_manager import DataManager, SiteData
+
 
 @pytest.fixture(scope="session")
 def credentials() -> UserCredentials:
