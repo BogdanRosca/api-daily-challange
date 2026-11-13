@@ -21,7 +21,7 @@ from resources.constants.timeouts import (
 )
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contact_enums import ContactRole
-from resources.enums.contract_enums import OverlapPolicy
+from resources.enums.contract_enums import ContractType, OverlapPolicy
 from resources.enums.forecast_enums import UploadStatus
 from resources.enums.tender_enums import TenderStatus
 
@@ -230,6 +230,22 @@ def create_contract(api_client: ControlRoomClient, mpan_core: str, contract_payl
         f"Expected {HTTPStatus.CREATED}, got {create_contract_response.status_code} for {mpan_core}"
     )
     return create_contract_response.data
+
+
+def list_site_contracts(api_client: ControlRoomClient, mpan_core: str, contract_type: ContractType | None = None) -> list[dict[str, Any]]:
+    """Every contract of a site, oldest start_date first, optionally of one type, following the cursor until the last page."""
+    logging.info(f"Checking the {contract_type or 'all'} contracts of {mpan_core}")
+    site_contracts: list[dict[str, Any]] = []
+    contracts_page_response = api_client.list_contracts(mpan_core, contract_type=contract_type)
+    while True:
+        assert contracts_page_response.status_code == HTTPStatus.OK, (
+            f"Expected {HTTPStatus.OK}, got {contracts_page_response.status_code} for {mpan_core}"
+        )
+        site_contracts.extend(contracts_page_response.data["items"])
+        next_cursor = contracts_page_response.data["next_cursor"]
+        if next_cursor is None:
+            return site_contracts
+        contracts_page_response = api_client.list_contracts(mpan_core, contract_type=contract_type, cursor=next_cursor)
 
 
 def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPolicy) -> OverlapPolicy:
