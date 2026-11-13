@@ -1,6 +1,8 @@
+from datetime import date, timedelta
+
 import pytest
 
-from helpers.api_test_helpers import create_contract
+from helpers.api_test_helpers import create_contract, list_site_contracts
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contract_enums import ContractType
 from resources.enums.site_enums import SiteType
@@ -35,3 +37,20 @@ class TestApiContracts:
         stored_dates = [(listed_contract["start_date"], listed_contract["end_date"]) for listed_contract in listed_contracts]
         expected_dates = [("2027-03-01", "2027-03-31"), ("2027-04-01", "2027-04-30")]
         assert stored_dates == expected_dates, f"{unique_site.mpan} did not store March and April as UK dates"
+
+    def test_api_a_sites_fixed_contracts_are_listed_oldest_first_across_pages(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
+        contract_types_by_month = {
+            "2027-01": ContractType.FIXED,
+            "2027-02": ContractType.FLEX,
+            "2027-03": ContractType.FIXED,
+            "2027-04": ContractType.FIXED,
+            "2027-05": ContractType.FLEX,
+            "2027-06": ContractType.FIXED,
+            "2027-07": ContractType.FIXED,
+        }
+        for month, contract_type in contract_types_by_month.items():
+            last_day = (date.fromisoformat(f"{month}-01") + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+            create_contract(api_client, unique_site.mpan, ContractFactory.build(f"{month}-01", last_day.isoformat(), contract_type))
+        fixed_start_dates = [fixed_contract["start_date"] for fixed_contract in list_site_contracts(api_client, unique_site.mpan, ContractType.FIXED)]
+        expected_start_dates = [f"{month}-01" for month, contract_type in contract_types_by_month.items() if contract_type == ContractType.FIXED]
+        assert fixed_start_dates == expected_start_dates, f"{unique_site.mpan} did not list exactly its FIXED contracts, oldest first"

@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 14. FIXED contracts that turn FLEX on page two (contracts)
+
+`pytest -q` has one failing test: `test_api_a_sites_fixed_contracts_are_listed_oldest_first_across_pages`.
+
+Find out why and fix it at the root. Read the fake's docstring (Supply contracts) and the three `GET .../contracts` log lines (which contracts came back on each page, and why is April there twice?) before you change anything.
+Done when: the suite is green, `make check` is clean, your fix holds for any filter and any number of pages, and you can say in one sentence why it failed and where the bug lives (test, helper or factory).
+
 ## 13. A clean-up that fails after the test passed (alerts)
 
 `pytest -q` reports `18 passed, 1 error`: `test_api_a_deleted_alert_rule_stops_alerting` passes, then errors in teardown.
