@@ -2,6 +2,13 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 15. A credit that is a penny short (invoices)
+
+`pytest -q` has one failing test: `test_api_every_billed_month_is_charged_in_whole_pence[SELL]`. The `[BUY]` case next to it passes, with the same three months.
+
+Find out why and fix it at the root. Read the fake's docstring (Invoices) and the `POST .../invoices` log line for 2026-10 (what did billing charge, and what did the test expect?) before you change anything.
+Done when: the suite is green, `make check` is clean, your expected amount is right for any consumption and rate on either site type (not only 0.5 kWh at 5p), and you can say in one sentence why only SELL failed and where the bug lives (test, helper or factory).
+
 ## 14. FIXED contracts that turn FLEX on page two (contracts)
 
 `pytest -q` has one failing test: `test_api_a_sites_fixed_contracts_are_listed_oldest_first_across_pages`.
