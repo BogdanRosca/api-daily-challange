@@ -1,5 +1,4 @@
-import math
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
@@ -35,4 +34,4 @@ class TestApiInvoices:
     def _billed_pence(consumption_kwh: str, unit_rate: str, site_type: SiteType) -> int:
         """What billing charges for a month: kWh x rate, rounded half up to whole pence, negative (a credit) for a SELL site."""
         signed_pence = Decimal(consumption_kwh) * Decimal(unit_rate) * (-1 if site_type == SiteType.SELL else 1)
-        return math.floor(signed_pence + Decimal("0.5"))
+        return int(signed_pence.quantize(Decimal('1'), rounding=ROUND_HALF_UP))
