@@ -52,6 +52,23 @@ def list_site_contacts(api_client: ControlRoomClient, mpan_core: str, role: Cont
     return list_contacts_response.data["items"]
 
 
+def delete_contact(api_client: ControlRoomClient, contact_id: str) -> None:
+    logging.info(f"Deleting contact {contact_id}")
+    delete_contact_response = api_client.delete_contact(contact_id)
+    assert delete_contact_response.status_code == HTTPStatus.NO_CONTENT, (
+        f"Expected {HTTPStatus.NO_CONTENT}, got {delete_contact_response.status_code} for {contact_id}"
+    )
+
+
+def hand_over_primary_contact(api_client: ControlRoomClient, mpan_core: str, new_primary_payload: dict[str, Any]) -> dict[str, Any]:
+    """Makes a new contact the site's PRIMARY and removes the one it replaces. The new one goes in first: a site always keeps a PRIMARY."""
+    new_primary = create_contact(api_client, mpan_core, new_primary_payload)
+    outgoing_primary = list_site_contacts(api_client, mpan_core, ContactRole.PRIMARY)[0]
+    logging.info(f"Handing {mpan_core} over from {outgoing_primary['id']} to {new_primary['id']}")
+    delete_contact(api_client, outgoing_primary["id"])
+    return new_primary
+
+
 def create_alert_rule(api_client: ControlRoomClient, mpan_core: str, alert_rule_payload: dict[str, Any]) -> dict[str, Any]:
     logging.info(f"Adding alert rule {alert_rule_payload['name']} to {mpan_core}")
     create_rule_response = api_client.create_alert_rule(mpan_core, alert_rule_payload)

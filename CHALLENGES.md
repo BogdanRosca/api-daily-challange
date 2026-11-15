@@ -2,6 +2,17 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 16. A handover that keeps the wrong PRIMARY (contacts)
+
+`pytest -q` has one failing test: `test_api_each_primary_contact_handover_leaves_only_the_new_primary`. Not on every run: run the suite five
+times and it will pass now and then. A green run doesn't mean it's fixed.
+
+Find out why and fix it at the root. Read the fake's docstring (Site contacts) and the log of a failing run (which contact did each
+`DELETE /contacts/...` remove, and which one had just been added?) before you change anything.
+Done when: the suite is green on every run (try 20 in a row), `make check` is clean, your fix holds whatever order the list comes back in,
+a handover on a site with no PRIMARY to replace, or more than one, fails loudly and says so, and you can say in one sentence why it
+passed on some runs and where the bug lives (test, helper or fixture).
+
 ## 15. A credit that is a penny short (invoices)
 
 `pytest -q` has one failing test: `test_api_every_billed_month_is_charged_in_whole_pence[SELL]`. The `[BUY]` case next to it passes, with the same three months.
