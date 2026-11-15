@@ -63,8 +63,9 @@ def delete_contact(api_client: ControlRoomClient, contact_id: str) -> None:
 def hand_over_primary_contact(api_client: ControlRoomClient, mpan_core: str, new_primary_payload: dict[str, Any]) -> dict[str, Any]:
     """Makes a new contact the site's PRIMARY and removes the one it replaces. The new one goes in first: a site always keeps a PRIMARY."""
     new_primary = create_contact(api_client, mpan_core, new_primary_payload)
-    outgoing_primary = sorted(list_site_contacts(api_client, mpan_core, ContactRole.PRIMARY), key=lambda x: x["id"])[0]
-
+    outgoing_primaries = [contact for contact in list_site_contacts(api_client, mpan_core, ContactRole.PRIMARY) if contact["id"] != new_primary["id"]]
+    assert len(outgoing_primaries) == 1, "Expected exactly one PRIMARY"
+    outgoing_primary = outgoing_primaries[0]
     logging.info(f"Handing {mpan_core} over from {outgoing_primary['id']} to {new_primary['id']}")
     delete_contact(api_client, outgoing_primary["id"])
     return new_primary
