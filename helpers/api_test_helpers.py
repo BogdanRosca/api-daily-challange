@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import date
 from http import HTTPStatus
 from typing import Any
 
@@ -168,6 +169,22 @@ def list_consumption_days(api_client: ControlRoomClient, from_date: str, to_date
     consumption_response = api_client.get_consumption(from_date, to_date, mpan_core)
     assert consumption_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {consumption_response.status_code} from {from_date}"
     return consumption_response.data["days"]
+
+
+def list_month_consumption_days(api_client: ControlRoomClient, mpan_core: str, consumption_month: str) -> list[dict[str, Any]]:
+    """The daily totals of one calendar month (YYYY-MM) of a site, from its first day to its last."""
+    year, month_number = (int(month_part) for month_part in consumption_month.split("-"))
+    first_day = date(year, month_number, 1)
+    last_day = date(year, month_number + 1, 1) if month_number != 12 else date(year + 1, 1, 1)
+    logging.info(f"Checking the consumption of {mpan_core} in {consumption_month}")
+    return list_consumption_days(api_client, first_day.isoformat(), last_day.isoformat(), mpan_core)
+
+
+def get_consumption_summary(api_client: ControlRoomClient, mpan_core: str, consumption_month: str) -> dict[str, Any]:
+    logging.info(f"Checking the consumption summary of {mpan_core} for {consumption_month}")
+    summary_response = api_client.get_monthly_summary(mpan_core, consumption_month)
+    assert summary_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {summary_response.status_code} for {mpan_core}"
+    return summary_response.data
 
 
 def _gateway_timeout(raised_exception: BaseException) -> bool:
