@@ -2,6 +2,17 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 17. A month that ends a day early (consumption)
+
+`pytest -q` has two failing cases of one test: `test_api_a_sites_daily_consumption_for_a_month_matches_its_monthly_summary[November]`
+and `[December]`. The monthly summary they compare against is right; the weekly test next to them passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Consumption) and the `GET /consumption` log line (which dates did it ask
+for, and how many daily totals came back?) before you change anything.
+Done when: the suite is green, `make check` is clean, your fix holds for any month of any year (December, and February in a leap year,
+included) without a hand-written calendar rule, and you can say in one sentence why every month came back short and where the bug lives
+(test, helper or factory).
+
 ## 16. A handover that keeps the wrong PRIMARY (contacts)
 
 `pytest -q` has one failing test: `test_api_each_primary_contact_handover_leaves_only_the_new_primary`. Not on every run: run the suite five
