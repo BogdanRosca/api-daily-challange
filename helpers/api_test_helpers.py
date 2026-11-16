@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import calendar
 import logging
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from http import HTTPStatus
 from typing import Any
 
@@ -175,9 +176,9 @@ def list_month_consumption_days(api_client: ControlRoomClient, mpan_core: str, c
     """The daily totals of one calendar month (YYYY-MM) of a site, from its first day to its last."""
     year, month_number = (int(month_part) for month_part in consumption_month.split("-"))
     first_day = date(year, month_number, 1)
-    last_day = date(year, month_number + 1, 1) if month_number != 12 else date(year + 1, 1, 1)
+    last_day = first_day.replace(day=calendar.monthrange(year, month_number)[1])
     logging.info(f"Checking the consumption of {mpan_core} in {consumption_month}")
-    return list_consumption_days(api_client, first_day.isoformat(), last_day.isoformat(), mpan_core)
+    return list_consumption_days(api_client, first_day.isoformat(), (last_day + timedelta(days=1)).isoformat(), mpan_core)
 
 
 def get_consumption_summary(api_client: ControlRoomClient, mpan_core: str, consumption_month: str) -> dict[str, Any]:
