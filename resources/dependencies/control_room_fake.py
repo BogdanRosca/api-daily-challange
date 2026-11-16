@@ -155,6 +155,8 @@ class QaEnvironment:
         ("1300555045673", "Barnsley Bakery", "BUY"),
         ("1300555056781", "Halifax Mill", "BUY"),
         ("1300555067889", "Huddersfield Works", "BUY"),
+        ("1300555078997", "Keighley Foundry", "BUY"),
+        ("1300555089005", "Dewsbury Mills", "BUY"),
         ("1900987651234", "Camp Nou", "BUY"),
         ("1900987651235", "Camp Nou 2", "BUY"),
         ("1900987651236", "Camp Nou 3", "BUY"),
