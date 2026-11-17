@@ -260,6 +260,32 @@ def list_forecast_days(api_client: ControlRoomClient, mpan_core: str) -> list[di
     return forecast_response.data["forecast_days"]
 
 
+class _ForecastDaysMissing(Exception):
+    """Some of the uploaded days are not in the site's forecast yet, so the wait goes on."""
+
+
+def revise_forecast(api_client: ControlRoomClient, mpan_core: str, forecast_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Uploads a revised forecast for some of a site's days and returns the site's forecast once the revision is in."""
+    upload_forecast(api_client, mpan_core, forecast_payload)
+    revised_days = {forecast_line.split(",")[0] for forecast_line in forecast_payload["content"].splitlines()[1:]}
+    return wait_for_forecast_days(api_client, mpan_core, revised_days)
+
+
+@retry(
+    retry=retry_if_exception_type(_ForecastDaysMissing),
+    stop=stop_after_delay(FORECAST_UPLOAD_TIMEOUT),
+    wait=wait_fixed(FORECAST_UPLOAD_BACKOFF),
+    reraise=True,
+)
+def wait_for_forecast_days(api_client: ControlRoomClient, mpan_core: str, expected_days: set[str]) -> list[dict[str, Any]]:
+    """Waits until every expected day is in the site's forecast and returns the forecast, oldest day first."""
+    forecast_days = list_forecast_days(api_client, mpan_core)
+    missing_days = expected_days - {forecast_day["day"] for forecast_day in forecast_days}
+    if missing_days:
+        raise _ForecastDaysMissing(f"{mpan_core} was still missing {sorted(missing_days)} from its forecast after {FORECAST_UPLOAD_TIMEOUT}s")
+    return forecast_days
+
+
 def create_contract(api_client: ControlRoomClient, mpan_core: str, contract_payload: dict[str, Any]) -> dict[str, Any]:
     logging.info(f"Adding a {contract_payload['contract_type']} contract to {mpan_core}")
     create_contract_response = api_client.create_contract(mpan_core, contract_payload)
