@@ -266,7 +266,8 @@ class _ForecastDaysMissing(Exception):
 
 def revise_forecast(api_client: ControlRoomClient, mpan_core: str, forecast_payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Uploads a revised forecast for some of a site's days and returns the site's forecast once the revision is in."""
-    upload_forecast(api_client, mpan_core, forecast_payload)
+    revise_upload_id = upload_forecast(api_client, mpan_core, forecast_payload)
+    wait_for_forecast_upload(api_client, revise_upload_id)
     revised_days = {forecast_line.split(",")[0] for forecast_line in forecast_payload["content"].splitlines()[1:]}
     return wait_for_forecast_days(api_client, mpan_core, revised_days)
 
