@@ -2,6 +2,17 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 18. A revision that never lands (forecasts)
+
+`pytest -q` has one failing test: `test_api_a_revised_forecast_replaces_only_the_days_it_contains`. The 17th is right; the revised 18th still
+shows the first upload's total. The two-day forecast test next to it passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Forecast uploads) and the log of the failing test (after the second
+`POST .../forecast-uploads`, which requests did the wait send, and how many before it returned?) before you change anything.
+Done when: the suite is green, `make check` is clean, your fix holds for a revision of any days (new ones, ones already there, or both), a
+revision that FAILS fails at once with the server's row errors instead of passing or timing out, and you can say in one sentence why the
+wait returned the old forecast and where the bug lives (test, helper or factory).
+
 ## 17. A month that ends a day early (consumption)
 
 `pytest -q` has two failing cases of one test: `test_api_a_sites_daily_consumption_for_a_month_matches_its_monthly_summary[November]`
