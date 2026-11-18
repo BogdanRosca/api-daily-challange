@@ -6,6 +6,7 @@ import calendar
 import logging
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
 
@@ -154,6 +155,25 @@ def submit_meter_reading(api_client: ControlRoomClient, meter_id: str, read_at: 
         f"Expected {HTTPStatus.CREATED}, got {submit_reading_response.status_code} for {meter_id} on {read_at}"
     )
     return submit_reading_response.data
+
+
+def list_meter_readings(api_client: ControlRoomClient, meter_id: str) -> list[dict[str, Any]]:
+    """Every reading of a meter, oldest first."""
+    logging.info(f"Checking the readings of {meter_id}")
+    list_readings_response = api_client.list_readings(meter_id)
+    assert list_readings_response.status_code == HTTPStatus.OK, f"Expected {HTTPStatus.OK}, got {list_readings_response.status_code} for {meter_id}"
+    return list_readings_response.data["items"]
+
+
+def get_meter_usage_kwh(api_client: ControlRoomClient, meter_id: str) -> Decimal:
+    """The kWh a meter has recorded: its latest register minus its first. A register only goes up, so register order is date order."""
+    meter_readings = sorted(list_meter_readings(api_client, meter_id), key=lambda meter_reading: meter_reading["register_kwh"])
+    first_reading, latest_reading = meter_readings[0], meter_readings[-1]
+    logging.info(
+        f"Meter {meter_id} went from {first_reading['register_kwh']} kWh on {first_reading['read_at']}"
+        f" to {latest_reading['register_kwh']} kWh on {latest_reading['read_at']}"
+    )
+    return Decimal(latest_reading["register_kwh"]) - Decimal(first_reading["register_kwh"])
 
 
 def submit_daily_reads(api_client: ControlRoomClient, mpan_core: str, kwh_by_day: dict[str, str]) -> None:
