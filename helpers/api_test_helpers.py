@@ -167,7 +167,7 @@ def list_meter_readings(api_client: ControlRoomClient, meter_id: str) -> list[di
 
 def get_meter_usage_kwh(api_client: ControlRoomClient, meter_id: str) -> Decimal:
     """The kWh a meter has recorded: its latest register minus its first. A register only goes up, so register order is date order."""
-    meter_readings = sorted(list_meter_readings(api_client, meter_id), key=lambda meter_reading: meter_reading["register_kwh"])
+    meter_readings = list_meter_readings(api_client, meter_id)
     first_reading, latest_reading = meter_readings[0], meter_readings[-1]
     logging.info(
         f"Meter {meter_id} went from {first_reading['register_kwh']} kWh on {first_reading['read_at']}"
