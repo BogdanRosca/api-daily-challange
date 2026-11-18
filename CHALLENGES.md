@@ -2,6 +2,17 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 19. A meter that ran backwards (meters)
+
+`pytest -q` has one failing test: `test_api_a_meters_usage_for_a_month_is_its_latest_register_minus_its_first`. November's usage
+comes back as -15.625 kWh where 118.500 was expected. The two meter tests next to it pass.
+
+Find out why and fix it at the root. Read the fake's docstring (Meters) and the failing test's log (the `Meter ... went from ... to ...`
+line: which readings did the helper take as the first and the latest, and on which dates?) before you change anything.
+Done when: the suite is green, `make check` is clean, your fix holds for any registers (crossing 10, 1,000 or 100,000 kWh, or staying
+level), a meter with one reading has used 0 kWh, a meter with no readings fails loudly and says so instead of an `IndexError`, and you
+can say in one sentence why November came out negative and where the bug lives (test, helper or factory).
+
 ## 18. A revision that never lands (forecasts)
 
 `pytest -q` has one failing test: `test_api_a_revised_forecast_replaces_only_the_days_it_contains`. The 17th is right; the revised 18th still
