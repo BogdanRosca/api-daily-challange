@@ -2,6 +2,19 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 20. A tag that never catches up (sites)
+
+`pytest -q` has one failing test: `test_api_two_people_tagging_a_site_at_once_keep_both_tags[BUY]`. It takes about two seconds to fail
+with a 412, though the helper it calls already retries a 412. The Leeds Depot rename-then-tag test passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Sites) and the failing test's log (what version did each `PATCH` send,
+what was current, and did anything change between attempts?) before you change anything. Compare the retry with the one in `bill_month`:
+the same shape is right there and wrong here.
+Done when: the suite is green, `make check` is clean, `add_site_tag` works from a site read any time before (another writer may have
+changed it since), neither person's tag is lost, a tag the site already has is not added twice, a 412 that never clears fails with a
+message that says what it was waiting for, a 428 is not retried, and you can say in one sentence why every retry failed the same way and
+where the bug lives (test, helper or factory).
+
 ## 19. A meter that ran backwards (meters)
 
 `pytest -q` has one failing test: `test_api_a_meters_usage_for_a_month_is_its_latest_register_minus_its_first`. November's usage
