@@ -10,7 +10,7 @@ from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
 
-from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed, Retrying
+from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from resources.constants.timeouts import (
     BILL_MONTH_BACKOFF,
