@@ -10,7 +10,7 @@ from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
 
-from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed, Retrying
+from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from resources.constants.timeouts import (
     BILL_MONTH_BACKOFF,
@@ -377,6 +377,7 @@ def add_site_tag(api_client: ControlRoomClient, site: dict[str, Any], new_tag: s
             if tag_attempt.retry_state.attempt_number > 1:
                 site_to_tag = get_site(api_client, site["mpan_core"])
             return _send_site_tags(api_client, site_to_tag, new_tag)
+    raise AssertionError("unreachable: Retrying either returns or re-raises")
 
 
 def _send_site_tags(api_client: ControlRoomClient, site: dict[str, Any], new_tag: str) -> dict[str, Any]:
