@@ -1,6 +1,6 @@
 import pytest
 
-from helpers.api_test_helpers import create_area, get_site, list_site_areas, update_site
+from helpers.api_test_helpers import add_site_tag, create_area, get_site, list_site_areas, update_site
 from resources.dependencies.control_room_fake import ControlRoomClient
 from resources.enums.site_enums import SiteType
 from resources.factories.area import AreaFactory
@@ -25,3 +25,12 @@ class TestApiSites:
         expected_area_ids = [area["id"] for area in sorted(created_areas, key=lambda area: area["name"].casefold())]
         listed_area_ids = [area["id"] for area in list_site_areas(api_client, unique_site.mpan)]
         assert listed_area_ids == expected_area_ids, f"{unique_site.mpan} listed its areas out of order"
+
+    @pytest.mark.parametrize("site_type", [SiteType.BUY], indirect=True)
+    def test_api_two_people_tagging_a_site_at_once_keep_both_tags(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
+        site_seen_by_facilities = get_site(api_client, unique_site.mpan)
+        site_seen_by_energy_desk = get_site(api_client, unique_site.mpan)
+        add_site_tag(api_client, site_seen_by_facilities, "cold-store")
+        add_site_tag(api_client, site_seen_by_energy_desk, "half-hourly")
+        stored_tags = sorted(get_site(api_client, unique_site.mpan)["tags"])
+        assert stored_tags == ["cold-store", "half-hourly"], f"{unique_site.mpan} kept {stored_tags} after two people tagged it"

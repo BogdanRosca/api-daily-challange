@@ -10,7 +10,7 @@ from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
 
-from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
+from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from resources.constants.timeouts import (
     BILL_MONTH_BACKOFF,
@@ -19,6 +19,8 @@ from resources.constants.timeouts import (
     EVALUATE_CONSUMPTION_TIMEOUT,
     FORECAST_UPLOAD_BACKOFF,
     FORECAST_UPLOAD_TIMEOUT,
+    SITE_UPDATE_BACKOFF,
+    SITE_UPDATE_TIMEOUT,
     TENDER_PRICING_BACKOFF,
     TENDER_PRICING_TIMEOUT,
 )
@@ -356,6 +358,35 @@ def update_site(api_client: ControlRoomClient, site: dict[str, Any], site_change
         f"Expected {HTTPStatus.OK}, got {update_site_response.status_code} for {site['mpan_core']}"
     )
     return {**site, **site_changes, "version": update_site_response.data["version"]}
+
+
+def _version_out_of_date(raised_exception: BaseException) -> bool:
+    return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.PRECONDITION_FAILED
+
+
+def add_site_tag(api_client: ControlRoomClient, site: dict[str, Any], new_tag: str) -> dict[str, Any]:
+    """Adds a tag to a site and keeps the tags it has. Someone may have changed the site since it was read, so a 412 is sent again."""
+    site_to_tag = site
+    for tag_attempt in Retrying(
+        retry=retry_if_exception(_version_out_of_date),
+        stop=stop_after_delay(SITE_UPDATE_TIMEOUT),
+        wait=wait_fixed(SITE_UPDATE_BACKOFF),
+        reraise=True,
+    ):
+        with tag_attempt:
+            if tag_attempt.retry_state.attempt_number > 1:
+                site_to_tag = get_site(api_client, site["mpan_core"])
+            return _send_site_tags(api_client, site_to_tag, new_tag)
+
+
+def _send_site_tags(api_client: ControlRoomClient, site: dict[str, Any], new_tag: str) -> dict[str, Any]:
+    site_tags = [*site["tags"], new_tag]
+    logging.info(f"Tagging {site['mpan_core']} {new_tag} at version {site['version']}")
+    update_site_response = api_client.patch_site(site["mpan_core"], {"tags": site_tags}, version=site["version"])
+    assert update_site_response.status_code == HTTPStatus.OK, (
+        f"Expected {HTTPStatus.OK}, got {update_site_response.status_code} for {site['mpan_core']}"
+    )
+    return update_site_response.data
 
 
 def upload_hedge(api_client: ControlRoomClient, hedge_csv: str) -> dict[str, Any]:
