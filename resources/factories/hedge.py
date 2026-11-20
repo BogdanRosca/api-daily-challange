@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 
 class HedgeFactory:
@@ -13,20 +14,27 @@ class HedgeFactory:
     _SUNDAY = 6
     _periods_per_day = 48
     _header = "delivery_date,settlement_period,volume_mwh"
+    _volume_step_mwh = Decimal("0.001")
 
     @classmethod
     def build(cls, delivery_date: str, volume_mwh: str = "0.500") -> str:
-
-        periods_per_day = cls._periods_per_day
-        date_obj = datetime.strptime(delivery_date, "%Y-%m-%d")
-
-        if cls._is_uk_clock_change_day(date_obj):
-            periods_per_day = 46 if date_obj.month == cls._MARCH else 50
-
         hedge_lines = [cls._header]
-        for settlement_period in range(1, periods_per_day + 1):
+        for settlement_period in range(1, cls._period_count(delivery_date) + 1):
             hedge_lines.append(f"{delivery_date},{settlement_period},{volume_mwh}")
         return "\n".join(hedge_lines) + "\n"
+
+    @classmethod
+    def build_for_day_volume(cls, delivery_date: str, day_volume_mwh: str) -> str:
+        """Builds a hedge for one day's traded volume, spread evenly over the day's settlement periods to the nearest kWh."""
+        period_volume_mwh = (Decimal(day_volume_mwh) / cls._period_count(delivery_date)).quantize(cls._volume_step_mwh)
+        return cls.build(delivery_date, f"{period_volume_mwh}")
+
+    @classmethod
+    def _period_count(cls, delivery_date: str) -> int:
+        date_obj = datetime.strptime(delivery_date, "%Y-%m-%d")
+        if cls._is_uk_clock_change_day(date_obj):
+            return 46 if date_obj.month == cls._MARCH else 50
+        return cls._periods_per_day
 
     @classmethod
     def _is_uk_clock_change_day(cls, delivery_date: datetime) -> bool:
