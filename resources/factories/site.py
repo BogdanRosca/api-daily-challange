@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import copy
 import uuid
 from typing import Any
-import copy
 
 
 class SiteFactory:
