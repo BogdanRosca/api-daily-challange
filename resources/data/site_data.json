@@ -11,6 +11,7 @@
   {"mpan": "1300555089005", "site_type": "BUY"},
   {"mpan": "1300555090019", "site_type": "BUY"},
   {"mpan": "1300555101027", "site_type": "BUY"},
+  {"mpan": "1300555112035", "site_type": "BUY"},
   {"mpan": "1900987651234", "site_type": "BUY"},
   {"mpan": "1900987651235", "site_type": "BUY"},
   {"mpan": "1900987651236", "site_type": "BUY"},
@@ -23,5 +24,6 @@
   {"mpan": "1900987654536", "site_type": "SELL"},
   {"mpan": "1900987654643", "site_type": "SELL"},
   {"mpan": "1900987654750", "site_type": "SELL"},
-  {"mpan": "1900987654857", "site_type": "SELL"}
+  {"mpan": "1900987654857", "site_type": "SELL"},
+  {"mpan": "1900987654964", "site_type": "SELL"}
 ]
