@@ -4,6 +4,7 @@ from helpers.api_test_helpers import add_site_tag, create_area, get_site, list_s
 from resources.dependencies.control_room_fake import ControlRoomClient
 from resources.enums.site_enums import SiteType
 from resources.factories.area import AreaFactory
+from resources.factories.site import SiteFactory
 from resources.utils.test_data_manager import DataManager, SiteData
 
 
@@ -34,3 +35,17 @@ class TestApiSites:
         add_site_tag(api_client, site_seen_by_energy_desk, "half-hourly")
         stored_tags = sorted(get_site(api_client, unique_site.mpan)["tags"])
         assert stored_tags == ["cold-store", "half-hourly"], f"{unique_site.mpan} kept {stored_tags} after two people tagged it"
+
+    @pytest.mark.parametrize(
+        ("site_type", "site_tag"),
+        [(SiteType.BUY, "cold-store"), (SiteType.SELL, "solar")],
+        indirect=["site_type"],
+        ids=["BUY", "SELL"],
+    )
+    def test_api_an_onboarded_site_carries_the_standard_tags_and_only_its_own(
+        self, api_client: ControlRoomClient, unique_site: SiteData, site_tag: str
+    ) -> None:
+        onboarding_changes = SiteFactory.build_onboarding(site_tag)
+        update_site(api_client, get_site(api_client, unique_site.mpan), onboarding_changes)
+        stored_tags = get_site(api_client, unique_site.mpan)["tags"]
+        assert stored_tags == onboarding_changes["tags"], f"{unique_site.mpan} was onboarded as {site_tag} but carries {stored_tags}"

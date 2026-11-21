@@ -2,6 +2,20 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 22. A tag from the site before (sites)
+
+`pytest -q` has one failing test: `test_api_an_onboarded_site_carries_the_standard_tags_and_only_its_own[SELL]`. The solar farm comes back
+tagged `cold-store` as well. The `[BUY]` case passes, and so does `[SELL]` run on its own (`pytest -k "onboarded and SELL"`).
+This branch is built on `main`, not on Challenge 21 (PR #27, still open), so the suite has only today's failure.
+
+Find out why and fix it at the root. Read the fake's docstring (Sites) and AGENTS.md (Test data factories), then look at the tags each
+case's `PATCH` sends (the log names the fields, not their values: put a breakpoint in `update_site`) before you change anything.
+Done when: the suite is green, `make check` is clean, the two cases pass in either order (`pytest -k onboarded`, then with the
+parametrize list reversed), no payload a test changes after it is built (its tags, its email or anything else in it) shows up in the next
+one or in the factory's defaults, a site tag that is already a standard tag is not added twice, `build_onboarding()` with no tags of its
+own still gives exactly the standard tags, and you can say in one sentence why only the second case failed and where the bug lives (test,
+helper or factory).
+
 ## 21. Six kilowatt-hours that nobody traded (hedges)
 
 `pytest -q` has one failing test: `test_api_a_hedge_for_a_days_trade_covers_exactly_the_traded_volume[spring_clock_change]`. The day's
