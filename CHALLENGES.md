@@ -16,6 +16,19 @@ one or in the factory's defaults, a site tag that is already a standard tag is n
 own still gives exactly the standard tags, and you can say in one sentence why only the second case failed and where the bug lives (test,
 helper or factory).
 
+## 21. Six kilowatt-hours that nobody traded (hedges)
+
+`pytest -q` has one failing test: `test_api_a_hedge_for_a_days_trade_covers_exactly_the_traded_volume[spring_clock_change]`. The day's
+12.000 MWh trade comes back hedged as 12.006 MWh. The `[ordinary_day]` and `[autumn_clock_change]` cases pass with the same trade.
+Start from a green suite: this branch includes PR #26 (Challenge 20) plus a commit that makes `make check` clean, so merge #26 first.
+
+Find out why and fix it at the root. Read the fake's docstring (Hedges) and look at the CSV the test uploads (what volume is on each row,
+and what do 46 of them add up to?) before you change anything.
+Done when: the suite is green, `make check` is clean, your hedge adds up to exactly the traded volume for any volume to the kWh (try
+10.000, 0.045 and 0.000 on each of the three days) on a day of 46, 48 or 50 periods, no two periods differ by more than 1 kWh, no period
+is negative, the test still compares against the traded volume the API reports back (no `approx`, no tolerance), and you can say in one
+sentence why only the spring day was off and where the bug lives (test, helper or factory).
+
 ## 20. A tag that never catches up (sites)
 
 `pytest -q` has one failing test: `test_api_two_people_tagging_a_site_at_once_keep_both_tags[BUY]`. It takes about two seconds to fail
