@@ -18,16 +18,25 @@ class HedgeFactory:
 
     @classmethod
     def build(cls, delivery_date: str, volume_mwh: str = "0.500") -> str:
-        hedge_lines = [cls._header]
-        for settlement_period in range(1, cls._period_count(delivery_date) + 1):
-            hedge_lines.append(f"{delivery_date},{settlement_period},{volume_mwh}")
-        return "\n".join(hedge_lines) + "\n"
+        return cls._build_csv(delivery_date, [volume_mwh] * cls._period_count(delivery_date))
 
     @classmethod
     def build_for_day_volume(cls, delivery_date: str, day_volume_mwh: str) -> str:
-        """Builds a hedge for one day's traded volume, spread evenly over the day's settlement periods to the nearest kWh."""
-        period_volume_mwh = (Decimal(day_volume_mwh) / cls._period_count(delivery_date)).quantize(cls._volume_step_mwh)
-        return cls.build(delivery_date, f"{period_volume_mwh}")
+        """Builds a hedge for one day's traded volume in whole kWh: periods differ by at most 1 kWh and add up to exactly the traded volume."""
+        period_count = cls._period_count(delivery_date)
+        day_volume_kwh = int(Decimal(day_volume_mwh) / cls._volume_step_mwh)
+        base_period_kwh, leftover_kwh = divmod(day_volume_kwh, period_count)
+        period_volumes_mwh = [
+            f"{(base_period_kwh + (1 if period_index < leftover_kwh else 0)) * cls._volume_step_mwh}" for period_index in range(period_count)
+        ]
+        return cls._build_csv(delivery_date, period_volumes_mwh)
+
+    @classmethod
+    def _build_csv(cls, delivery_date: str, period_volumes_mwh: list[str]) -> str:
+        hedge_lines = [cls._header]
+        for settlement_period, volume_mwh in enumerate(period_volumes_mwh, start=1):
+            hedge_lines.append(f"{delivery_date},{settlement_period},{volume_mwh}")
+        return "\n".join(hedge_lines) + "\n"
 
     @classmethod
     def _period_count(cls, delivery_date: str) -> int:
