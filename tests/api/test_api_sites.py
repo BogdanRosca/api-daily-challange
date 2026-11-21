@@ -48,4 +48,4 @@ class TestApiSites:
         onboarding_changes = SiteFactory.build_onboarding(site_tag)
         update_site(api_client, get_site(api_client, unique_site.mpan), onboarding_changes)
         stored_tags = get_site(api_client, unique_site.mpan)["tags"]
-        assert stored_tags == ["half-hourly", "qa-managed", site_tag], f"{unique_site.mpan} was onboarded as {site_tag} but carries {stored_tags}"
+        assert stored_tags == onboarding_changes["tags"], f"{unique_site.mpan} was onboarded as {site_tag} but carries {stored_tags}"
