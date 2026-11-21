@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any
+import copy
 
 
 class SiteFactory:
@@ -13,7 +14,7 @@ class SiteFactory:
 
     @classmethod
     def build_onboarding(cls, *site_tags: str) -> dict[str, Any]:
-        onboarding_changes = dict(cls._onboarding_changes)
+        onboarding_changes = copy.deepcopy(cls._onboarding_changes)
         onboarding_changes["contact_email"] = f"qa.site.{uuid.uuid4().hex[:8]}@example.com"
-        onboarding_changes["tags"] += site_tags
+        onboarding_changes["tags"] = list(dict.fromkeys([*onboarding_changes["tags"], *site_tags]))
         return onboarding_changes
