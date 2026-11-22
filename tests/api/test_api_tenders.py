@@ -2,17 +2,23 @@ from http import HTTPStatus
 
 import pytest
 
-from helpers.api_test_helpers import request_tender, wait_for_priced_tender
+from helpers.api_test_helpers import get_site, request_tender, wait_for_priced_tender
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
-from resources.enums.site_enums import SiteType
+from resources.enums.site_enums import SiteStatus, SiteType
 from resources.enums.tender_enums import TenderStatus
-from resources.utils.test_data_manager import DataManager
+from resources.utils.test_data_manager import DataManager, SiteData
 
 
 @pytest.mark.tenders
 class TestApiTenders:
     _buy_rate_pence_per_kwh = 24.6
     _contract_lengths_in_months = (12, 24, 36)
+
+    def test_api_a_tender_for_a_deactivated_site_is_refused(self, api_client: ControlRoomClient, deactivated_site: SiteData) -> None:
+        with pytest.raises(ApiError) as refused_tender:
+            api_client.request_tender(deactivated_site.mpan, {"contract_months": 12})
+        assert refused_tender.value.status_code == HTTPStatus.CONFLICT, f"{deactivated_site.mpan} was tendered after it was switched off"
+        assert get_site(api_client, deactivated_site.mpan)["status"] == SiteStatus.INACTIVE, f"{deactivated_site.mpan} came back on"
 
     def test_api_a_buy_site_tender_starts_pending_and_is_priced_at_the_buy_rate(
         self, api_client: ControlRoomClient, data_manager: DataManager

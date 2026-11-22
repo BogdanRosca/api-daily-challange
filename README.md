@@ -51,7 +51,7 @@ Each run starts from a clean environment (like each pytest run); chain calls wit
 |---|---|---|
 | auth | `POST /auth/login` | a token is good for 25 requests |
 | settings | `GET/PATCH /settings` | environment-wide: change, then put it back |
-| sites | `GET /sites`, `GET/PATCH /sites/{mpan}`, `POST …/deactivation`, `POST/GET …/areas` | If-Match versions (412/428), opaque version numbers, case-insensitive sort |
+| sites | `GET /sites`, `GET/PATCH /sites/{mpan}`, `POST …/deactivation`, `POST/GET …/areas` | If-Match versions (412/428), opaque version numbers, case-insensitive sort; deactivation is for the rest of the run |
 | tenders | `POST /sites/{mpan}/tenders`, `GET /tenders/{id}` | async pricing; Hull Test Rig never prices; inactive site → 409 |
 | hedges | `POST /hedges` (CSV), `GET /hedges/{id}` | 46/48/50 settlement periods (Europe/London clock changes) |
 | invoices | `POST/GET /sites/{mpan}/invoices` | first POST per site → 503 but stored; Idempotency-Key; ROUND_HALF_UP; SELL is negative |
@@ -69,3 +69,4 @@ Pool (`site_data.json`, one per test): twenty BUY (`1300123456718`, `13001234568
 `1900987654857`, `1900987654964`).
 Not in the pool on purpose: Leeds Depot `1300777000119` (fixed, shared), Hull Test Rig `1300999000222` (manual QA
 only), and Drax Battery Store `1900111222333` (another customer, with reads already on QA).
+On QA but not in the pool yet: Castleford Dairy `1300555123043` (BUY).

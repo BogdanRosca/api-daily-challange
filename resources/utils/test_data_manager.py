@@ -51,6 +51,11 @@ class DataManager:
             return SiteData(mpan=pool_entry["mpan"], site_type=SiteType(pool_entry["site_type"]))
         raise DataLocked(f"No more unused sites available for site_type={site_type}")
 
+    def release_site(self, site: SiteData) -> None:
+        """Hands a pool site back once a test is done with it, so the next test can claim it."""
+        self._claimed.discard(site.mpan)
+        logging.info(f"Released pool site {site.mpan} ({site.site_type})")
+
     def get_fixed_site(self, site_name: str) -> SiteData:
         """A named site from fixed_sites.json. Shared: every test that asks for it gets the same one."""
         for fixed_entry in self._fixed_entries:
