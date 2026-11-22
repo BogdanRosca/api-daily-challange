@@ -51,7 +51,7 @@ Each run starts from a clean environment (like each pytest run); chain calls wit
 |---|---|---|
 | auth | `POST /auth/login` | a token is good for 25 requests |
 | settings | `GET/PATCH /settings` | environment-wide: change, then put it back |
-| sites | `GET /sites`, `GET/PATCH /sites/{mpan}`, `POST …/deactivation`, `POST/GET …/areas` | If-Match versions (412/428), opaque version numbers, case-insensitive sort |
+| sites | `GET /sites`, `GET/PATCH /sites/{mpan}`, `POST …/deactivation`, `POST/GET …/areas` | If-Match versions (412/428), opaque version numbers, case-insensitive sort; deactivation is for the rest of the run |
 | tenders | `POST /sites/{mpan}/tenders`, `GET /tenders/{id}` | async pricing; Hull Test Rig never prices; inactive site → 409 |
 | hedges | `POST /hedges` (CSV), `GET /hedges/{id}` | 46/48/50 settlement periods (Europe/London clock changes) |
 | invoices | `POST/GET /sites/{mpan}/invoices` | first POST per site → 503 but stored; Idempotency-Key; ROUND_HALF_UP; SELL is negative |
@@ -65,7 +65,8 @@ Each run starts from a clean environment (like each pytest run); chain calls wit
 ## Sites on QA
 
 Pool (`site_data.json`, one per test): twenty BUY (`1300123456718`, `1300123456824`, `1300555012349`, `1300555023457`,
-`1300555034565`, `1300555045673`, `1300555056781`, `1300555067889`, `1300555078997`, `1300555089005`, `1300555090019`, `1300555101027`, `1300555112035`, `1900987651234` to `1900987651240`) and seven SELL (`1900987654312`, `1900987654429`, `1900987654536`, `1900987654643`, `1900987654750`,
+`1300555034565`, `1300555045673`, `1300555056781`, `1300555067889`, `1300555078997`, `1300555089005`, `1300555090019`, `1300555101027`, `1300555112035`, `1900987651234` to `1900987651241`) and seven SELL (`1900987654312`, `1900987654429`, `1900987654536`, `1900987654643`, `1900987654750`,
 `1900987654857`, `1900987654964`).
 Not in the pool on purpose: Leeds Depot `1300777000119` (fixed, shared), Hull Test Rig `1300999000222` (manual QA
 only), and Drax Battery Store `1900111222333` (another customer, with reads already on QA).
+On QA but not in the pool yet: Castleford Dairy `1300555123043` (BUY).

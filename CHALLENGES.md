@@ -2,6 +2,20 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 23. A site that was switched off before it was handed out (tenders)
+
+`pytest -q` has one failing test: `test_api_a_buy_site_tender_starts_pending_and_is_priced_at_the_buy_rate`. Its tender is refused with a
+409: the fresh pool site it claimed is inactive. Run on its own (`pytest -k starts_pending`) it passes. The new test before it,
+`test_api_a_tender_for_a_deactivated_site_is_refused`, passes.
+
+Find out why and fix it at the root. Read the fake's docstring (Sites, Tenders), AGENTS.md (Test data) and the `Claimed pool site` and
+`Released pool site` lines in the log (which sites did the tender tests claim, and has any of them been claimed before?) before you change
+anything.
+Done when: the suite is green, `make check` is clean, the deactivation test still proves a switched-off site is refused, no pool site is
+handed to two tests in one run (whatever the tests do to it, and in any test order), the suite does not run out of sites (`DataLocked`),
+nothing is left in the code that could hand a site out twice, and you can say in one sentence why only the test after the deactivation
+failed and where the bug lives (test, helper, fixture or data).
+
 ## 22. A tag from the site before (sites)
 
 `pytest -q` has one failing test: `test_api_an_onboarded_site_carries_the_standard_tags_and_only_its_own[SELL]`. The solar farm comes back

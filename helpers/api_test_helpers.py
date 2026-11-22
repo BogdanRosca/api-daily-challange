@@ -360,6 +360,16 @@ def update_site(api_client: ControlRoomClient, site: dict[str, Any], site_change
     return {**site, **site_changes, "version": update_site_response.data["version"]}
 
 
+def deactivate_site(api_client: ControlRoomClient, mpan_core: str) -> dict[str, Any]:
+    """Switches a site off. There is no way back: it stays INACTIVE for the rest of the run."""
+    logging.info(f"Deactivating site {mpan_core}")
+    deactivate_site_response = api_client.deactivate_site(mpan_core)
+    assert deactivate_site_response.status_code == HTTPStatus.OK, (
+        f"Expected {HTTPStatus.OK}, got {deactivate_site_response.status_code} for {mpan_core}"
+    )
+    return deactivate_site_response.data
+
+
 def _version_out_of_date(raised_exception: BaseException) -> bool:
     return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.PRECONDITION_FAILED
 

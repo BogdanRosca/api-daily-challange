@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, set_overlap_policy
+from helpers.api_test_helpers import create_alert_rule, deactivate_site, delete_alert_rule, set_overlap_policy
 from resources.dependencies.control_room_fake import ENV, ApiError, ControlRoomClient
 from resources.enums.contract_enums import OverlapPolicy
 from resources.enums.site_enums import SiteType
@@ -66,3 +66,11 @@ def alert_rule(api_client: ControlRoomClient, unique_site: SiteData) -> Iterator
         delete_alert_rule(api_client, created_rule["id"])
     except ApiError as returned_error:
         assert returned_error.status_code == HTTPStatus.NOT_FOUND, f"Deleting alert rule failed with {returned_error.status_code} status code"
+
+
+@pytest.fixture(scope="function")
+def deactivated_site(api_client: ControlRoomClient, data_manager: DataManager) -> Iterator[SiteData]:
+    """A BUY pool site switched off for the test. Handed back to the pool in teardown, so the pool doesn't run dry."""
+    claimed_site = data_manager.get_next_available_site(site_type=SiteType.BUY)
+    deactivate_site(api_client, claimed_site.mpan)
+    yield claimed_site
