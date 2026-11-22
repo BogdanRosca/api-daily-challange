@@ -74,4 +74,3 @@ def deactivated_site(api_client: ControlRoomClient, data_manager: DataManager) -
     claimed_site = data_manager.get_next_available_site(site_type=SiteType.BUY)
     deactivate_site(api_client, claimed_site.mpan)
     yield claimed_site
-    data_manager.release_site(claimed_site)
