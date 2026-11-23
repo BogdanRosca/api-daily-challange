@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import calendar
-import json
 import logging
 import uuid
 from datetime import date, timedelta
@@ -215,15 +214,10 @@ def _gateway_timeout(raised_exception: BaseException) -> bool:
     return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.SERVICE_UNAVAILABLE
 
 
-def _invoice_idempotency_key(invoice_payload: dict[str, Any]) -> str:
-    """The same bill always gets the same key, so a bill sent twice, by a retry or a re-run, is only charged once."""
-    return str(uuid.uuid5(uuid.NAMESPACE_OID, json.dumps(invoice_payload, sort_keys=True)))
-
-
 def bill_month(api_client: ControlRoomClient, mpan_core: str, billing_month: str, consumption_kwh: str, unit_rate: str) -> dict[str, Any]:
     """Bills one month of a site and returns the invoice. The billing gateway can time out, so a 503 is sent again."""
     invoice_payload = {"billing_month": billing_month, "consumption_kwh": consumption_kwh, "unit_rate_pence_per_kwh": unit_rate}
-    idempotency_key = _invoice_idempotency_key(invoice_payload)
+    idempotency_key = str(uuid.uuid4())
     logging.info(f"Billing {billing_month} for {mpan_core}: {consumption_kwh} kWh at {unit_rate}p with idempotency key {idempotency_key}")
     return _send_invoice(api_client, mpan_core, idempotency_key, invoice_payload)
 
