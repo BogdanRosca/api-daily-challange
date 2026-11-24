@@ -441,6 +441,26 @@ def wait_for_priced_tender(api_client: ControlRoomClient, tender_id: str) -> dic
     return get_tender_response.data
 
 
+@retry(
+    retry=retry_if_exception_type(_TenderNotPriced),
+    stop=stop_after_delay(TENDER_PRICING_TIMEOUT),
+    wait=wait_fixed(TENDER_PRICING_BACKOFF),
+    reraise=True,
+)
+def get_priced_tender(api_client: ControlRoomClient, mpan_core: str, contract_months: int) -> dict[str, Any]:
+    """Prices a contract length for a site: asks for a tender and returns it once it is PRICED. Pricing is asynchronous, so the check repeats."""
+    pending_tender = request_tender(api_client, mpan_core, contract_months)
+    get_tender_response = api_client.get_tender(pending_tender["id"])
+    assert get_tender_response.status_code == HTTPStatus.OK, (
+        f"Expected {HTTPStatus.OK}, got {get_tender_response.status_code} for {pending_tender['id']}"
+    )
+    tender_status = get_tender_response.data["status"]
+    logging.info(f"Tender {pending_tender['id']} is {tender_status}")
+    if tender_status != TenderStatus.PRICED:
+        raise _TenderNotPriced(f"Tender {pending_tender['id']} was still {tender_status} after {TENDER_PRICING_TIMEOUT}s")
+    return get_tender_response.data
+
+
 def create_area(api_client: ControlRoomClient, mpan_core: str, area_payload: dict[str, Any]) -> dict[str, Any]:
     logging.info(f"Adding area {area_payload['name']} to {mpan_core}")
     create_area_response = api_client.create_area(mpan_core, area_payload)

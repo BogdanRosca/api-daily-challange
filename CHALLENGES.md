@@ -2,6 +2,21 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 25. A tender that never gets a second look (tenders)
+
+`pytest -q` has one failing test: `test_api_a_sell_site_tender_is_priced_at_the_sell_rate[SELL]`. It fails in about a second with
+`401 token expired after 25 requests; log in again`. The four other tender tests pass, and they wait for pricing too.
+Start from a green suite: this branch includes your Challenge 24 fix from PR #31, so merge #31 first.
+
+Find out why and fix it at the root. Read the fake's docstring (Everywhere, Tenders), AGENTS.md (Retries and waiting) and the failing
+test's log (how many tenders did it ask for, and how many times was each one read?) before you change anything. The 401 tells you the token
+ran out, not why.
+Done when: the suite is green, `make check` is clean, each `get_priced_tender` call asks for exactly one tender and returns that tender
+once it is priced, the SELL site is priced at the SELL rate, a tender that never prices (try Hull Test Rig in a scratch run; don't commit
+it) fails within `TENDER_PRICING_TIMEOUT` with a message that names the tender and says it was still waiting for a price (not a 401, not a
+`RetryError`), nothing retries a 401 or logs in again inside a helper, there is one pricing wait in `helpers/`, not two, and you can say
+in one sentence why the token ran out and where the bug lives (test, helper, fixture or factory).
+
 ## 24. A credit note that went to the wrong site (invoices)
 
 `pytest -q` has one failing test: `test_api_every_billed_month_is_charged_in_whole_pence[SELL]`. The solar farm's invoice list comes back
