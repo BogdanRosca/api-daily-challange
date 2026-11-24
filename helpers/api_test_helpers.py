@@ -216,9 +216,9 @@ def _gateway_timeout(raised_exception: BaseException) -> bool:
 
 def bill_month(api_client: ControlRoomClient, mpan_core: str, billing_month: str, consumption_kwh: str, unit_rate: str) -> dict[str, Any]:
     """Bills one month of a site and returns the invoice. The billing gateway can time out, so a 503 is sent again."""
+    invoice_payload = {"billing_month": billing_month, "consumption_kwh": consumption_kwh, "unit_rate_pence_per_kwh": unit_rate}
     idempotency_key = str(uuid.uuid4())
     logging.info(f"Billing {billing_month} for {mpan_core}: {consumption_kwh} kWh at {unit_rate}p with idempotency key {idempotency_key}")
-    invoice_payload = {"billing_month": billing_month, "consumption_kwh": consumption_kwh, "unit_rate_pence_per_kwh": unit_rate}
     return _send_invoice(api_client, mpan_core, idempotency_key, invoice_payload)
 
 

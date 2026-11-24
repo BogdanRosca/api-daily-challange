@@ -2,6 +2,20 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 24. A credit note that went to the wrong site (invoices)
+
+`pytest -q` has one failing test: `test_api_every_billed_month_is_charged_in_whole_pence[SELL]`. The solar farm's invoice list comes back
+empty though every `bill_month` call answered 201. The `[BUY]` case passes, and so does `[SELL]` run on its own
+(`pytest -k "whole_pence and SELL"`). Both cases bill the same three months.
+
+Find out why and fix it at the root. Read the fake's docstring (Invoices) and the `POST .../invoices` log lines of both cases (which key did
+each send, which invoice id came back, and whose site is that invoice on?) before you change anything.
+Done when: the suite is green, `make check` is clean, the two cases pass in either order (`pytest -k whole_pence`, then with the parametrize
+list reversed) and on their own, a 503 is still retried with the same key and leaves exactly one invoice for the month, two sites billed
+the identical month each get their own invoice, a second run against a QA environment that keeps its data (the real one does) would not
+get this run's invoices back, a month billed twice on purpose is billed twice, and you can say in one sentence why only SELL failed and
+where the bug lives (test, helper or factory).
+
 ## 23. A site that was switched off before it was handed out (tenders)
 
 `pytest -q` has one failing test: `test_api_a_buy_site_tender_starts_pending_and_is_priced_at_the_buy_rate`. Its tender is refused with a
