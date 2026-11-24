@@ -441,6 +441,12 @@ def wait_for_priced_tender(api_client: ControlRoomClient, tender_id: str) -> dic
     return get_tender_response.data
 
 
+def get_priced_tender(api_client: ControlRoomClient, mpan_core: str, contract_months: int) -> dict[str, Any]:
+    """Prices a contract length for a site: asks for one tender, then waits for that tender to be PRICED."""
+    pending_tender = request_tender(api_client, mpan_core, contract_months)
+    return wait_for_priced_tender(api_client, pending_tender["id"])
+
+
 def create_area(api_client: ControlRoomClient, mpan_core: str, area_payload: dict[str, Any]) -> dict[str, Any]:
     logging.info(f"Adding area {area_payload['name']} to {mpan_core}")
     create_area_response = api_client.create_area(mpan_core, area_payload)

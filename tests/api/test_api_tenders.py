@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from helpers.api_test_helpers import get_site, request_tender, wait_for_priced_tender
+from helpers.api_test_helpers import get_priced_tender, get_site, request_tender, wait_for_priced_tender
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.site_enums import SiteStatus, SiteType
 from resources.enums.tender_enums import TenderStatus
@@ -12,6 +12,7 @@ from resources.utils.test_data_manager import DataManager, SiteData
 @pytest.mark.tenders
 class TestApiTenders:
     _buy_rate_pence_per_kwh = 24.6
+    _sell_rate_pence_per_kwh = 9.85
     _contract_lengths_in_months = (12, 24, 36)
 
     def test_api_a_tender_for_a_deactivated_site_is_refused(self, api_client: ControlRoomClient, deactivated_site: SiteData) -> None:
@@ -27,6 +28,12 @@ class TestApiTenders:
         pending_tender = request_tender(api_client, unique_buy_site.mpan, 12)
         priced_tender = wait_for_priced_tender(api_client, pending_tender["id"])
         assert (pending_tender["status"], priced_tender["unit_rate_pence_per_kwh"]) == (TenderStatus.PENDING, self._buy_rate_pence_per_kwh)
+
+    @pytest.mark.parametrize("site_type", [SiteType.SELL], indirect=True)
+    def test_api_a_sell_site_tender_is_priced_at_the_sell_rate(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
+        priced_tender = get_priced_tender(api_client, unique_site.mpan, 24)
+        priced_terms = (priced_tender["mpan_core"], priced_tender["contract_months"], priced_tender["unit_rate_pence_per_kwh"])
+        assert priced_terms == (unique_site.mpan, 24, self._sell_rate_pence_per_kwh), f"{unique_site.mpan} was priced as {priced_terms}"
 
     def test_api_a_tender_for_an_unsupported_contract_length_is_refused(self, api_client: ControlRoomClient, data_manager: DataManager) -> None:
         unique_buy_site = data_manager.get_next_available_site(site_type=SiteType.BUY)
