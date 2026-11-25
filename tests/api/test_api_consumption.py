@@ -1,5 +1,4 @@
 import calendar
-from collections import OrderedDict
 from datetime import date
 from decimal import Decimal
 
@@ -60,8 +59,9 @@ class TestApiConsumption:
         month_kwh.update(dict.fromkeys(("2026-11-07", "2026-11-19"), self._peak_kwh))
         submit_daily_reads(api_client, unique_site.mpan, month_kwh)
         consumption_summary = get_consumption_summary(api_client, unique_site.mpan, "2026-11")
-        expected_peak = (self._busiest_day(month_kwh), self._peak_kwh)
-        assert (consumption_summary["peak_day"], consumption_summary["peak_kwh"]) == expected_peak, (
+        consumption_peak = (consumption_summary["peak_day"], Decimal(consumption_summary["peak_kwh"]))
+        expected_peak = (self._busiest_day(month_kwh), Decimal(self._peak_kwh))
+        assert consumption_peak == expected_peak, (
             f"The November summary of {unique_site.mpan} named {consumption_summary['peak_day']} as its busiest day, not {expected_peak[0]}"
         )
 
@@ -72,12 +72,12 @@ class TestApiConsumption:
         month_days = [date(year, month_number, day_number) for day_number in range(1, calendar.monthrange(year, month_number)[1] + 1)]
         weekday_reads = {month_day.isoformat(): cls._weekday_kwh for month_day in month_days if month_day.weekday() < 5}
         weekend_reads = {month_day.isoformat(): cls._weekend_kwh for month_day in month_days if month_day.weekday() >= 5}
-        return OrderedDict(sorted({**weekday_reads, **weekend_reads}.items()))
+        return {**weekday_reads, **weekend_reads}
 
     @staticmethod
     def _busiest_day(kwh_by_day: dict[str, str]) -> str:
-        """The day with the most kWh. max() keeps the first of equal days, which is the contract's earliest on a tie."""
-        return max(kwh_by_day, key=lambda day: Decimal(kwh_by_day[day]))
+        """The day with the most kWh, the earliest on a tie (the contract's rule), whatever order the reads are in."""
+        return min(kwh_by_day, key=lambda day: (-Decimal(kwh_by_day[day]), day))
 
     @staticmethod
     def _reads_for_every_day_of(consumption_month: str) -> dict[str, str]:
