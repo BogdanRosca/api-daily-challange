@@ -1,4 +1,5 @@
 import calendar
+from collections import OrderedDict
 from datetime import date
 from decimal import Decimal
 
@@ -71,7 +72,7 @@ class TestApiConsumption:
         month_days = [date(year, month_number, day_number) for day_number in range(1, calendar.monthrange(year, month_number)[1] + 1)]
         weekday_reads = {month_day.isoformat(): cls._weekday_kwh for month_day in month_days if month_day.weekday() < 5}
         weekend_reads = {month_day.isoformat(): cls._weekend_kwh for month_day in month_days if month_day.weekday() >= 5}
-        return {**weekday_reads, **weekend_reads}
+        return OrderedDict(sorted({**weekday_reads, **weekend_reads}.items()))
 
     @staticmethod
     def _busiest_day(kwh_by_day: dict[str, str]) -> str:
