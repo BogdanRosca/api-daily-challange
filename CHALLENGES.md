@@ -2,6 +2,21 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 26. A busiest day that came second (consumption)
+
+`pytest -q` has one failing test: `test_api_a_sites_monthly_summary_names_its_busiest_day_the_earliest_on_a_tie`. Two days in November
+share the month's highest reading, and the test says the summary named the wrong one. The other consumption tests pass, and
+`total_kwh` and `peak_kwh` are right. To make room for it, Castleford Dairy (`1300555123043`, already on QA) has joined the pool.
+
+Find out who is right before you change anything: read the fake's docstring (Consumption) and the contract
+(`resources/openapi/control_room_admin.json`, the consumption summary), then look at the order of the reads the test sends (put a
+breakpoint before `submit_daily_reads`: which day comes first in `month_kwh`, and is that the earliest one?).
+Done when: the suite is green, `make check` is clean, your expected busiest day is right whatever order the reads were built or sent in
+(try the reads reversed and shuffled), for a tie of two or three days, for a tie between two weekdays and between a weekend day and a
+weekday, and for a month with one clear peak, the expected value still comes from the contract and not from the summary under test,
+the comparison of kWh is by value (`"95.000"` and `"95.0"` are the same reading), and you can say in one sentence why the test expected the
+19th and where the bug lives (test, helper or factory).
+
 ## 25. A tender that never gets a second look (tenders)
 
 `pytest -q` has one failing test: `test_api_a_sell_site_tender_is_priced_at_the_sell_rate[SELL]`. It fails in about a second with
