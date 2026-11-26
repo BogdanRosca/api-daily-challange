@@ -161,6 +161,7 @@ class QaEnvironment:
         ("1300555101027", "Ossett Tannery", "BUY"),
         ("1300555112035", "Pontefract Brewery", "BUY"),
         ("1300555123043", "Castleford Dairy", "BUY"),
+        ("1300555134051", "Knottingley Glassworks", "BUY"),
         ("1900987651234", "Camp Nou", "BUY"),
         ("1900987651235", "Camp Nou 2", "BUY"),
         ("1900987651236", "Camp Nou 3", "BUY"),
