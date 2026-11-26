@@ -7,12 +7,13 @@ from resources.dependencies.control_room_fake import ControlRoomClient
 from resources.enums.site_enums import SiteType
 from resources.factories.daily_read import DailyReadFactory
 from resources.utils.test_data_manager import SiteData
-
+from datetime import date
 
 @pytest.mark.invoices
 class TestApiInvoices:
     _unit_rate_pence_per_kwh = "24.6"
     _fortnight = 14
+    _start_date = date.fromisoformat("2026-11-01")
 
     def test_api_two_billed_months_give_two_invoices_with_rounded_amounts(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
         bill_month(api_client, unique_site.mpan, "2026-10", "100.500", "10.5")
@@ -35,7 +36,7 @@ class TestApiInvoices:
         assert billed_amounts == expected_amounts, f"{unique_site.mpan} ({unique_site.site_type}) was not billed in whole pence"
 
     def test_api_a_month_is_billed_for_every_kwh_read_in_it(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
-        fortnight_kwh = DailyReadFactory.build(self._fortnight)
+        fortnight_kwh = DailyReadFactory.build(self._fortnight, first_day=self._start_date)
         billing_month = min(fortnight_kwh)[:7]
         submit_daily_reads(api_client, unique_site.mpan, fortnight_kwh)
         month_summary = get_consumption_summary(api_client, unique_site.mpan, billing_month)
