@@ -2,6 +2,24 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 27. A bill for part of a fortnight (invoices)
+
+`pytest -q` has one failing test: `test_api_a_month_is_billed_for_every_kwh_read_in_it`. The site sends fourteen daily reads, bills the
+month they start in at the summary's total, and the invoice comes back short (on 26 November: 4874p where the test expected 17134p). The other invoice and
+consumption tests pass, and nothing in billing or the summary is wrong. The test has a site of its own: Knottingley Glassworks
+(`1300555134051`, now on QA) has joined the pool.
+
+Find out why and fix it at the root. Read the fake's docstring (Consumption, Invoices), the new `DailyReadFactory`
+(`resources/factories/daily_read.py`) and the `POST .../daily-reads` and `consumption-summary` log lines (how many reads went in, how many
+kWh did the summary count, and which days were the reads for?) before you change anything. Then ask yourself: would this test have failed
+on 2 November? Will it on 3 December?
+Done when: the suite is green, `make check` is clean, the test sends the same reads, bills the same month and expects the same amount on
+whatever day it runs (1 January, 29 February 2028, 30 November and 31 December included), nothing under `helpers/`, `resources/factories/`
+or `tests/` reads the wall clock (`date.today()`, `datetime.now()`), a read on the day before and the day after the billed month (the
+boundary) is in the run and is not billed, the expected amount still comes from the reads the test sent and the rate, not from the summary
+or the invoice under test, every `DailyReadFactory.build` call still gives a fresh dict, and you can say in one sentence why the bill came up
+short today and where the bug lives (test, helper, fixture or factory).
+
 ## 26. A busiest day that came second (consumption)
 
 `pytest -q` has one failing test: `test_api_a_sites_monthly_summary_names_its_busiest_day_the_earliest_on_a_tie`. Two days in November
