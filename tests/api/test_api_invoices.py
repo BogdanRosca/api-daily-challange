@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
@@ -7,7 +8,7 @@ from resources.dependencies.control_room_fake import ControlRoomClient
 from resources.enums.site_enums import SiteType
 from resources.factories.daily_read import DailyReadFactory
 from resources.utils.test_data_manager import SiteData
-from datetime import date
+
 
 @pytest.mark.invoices
 class TestApiInvoices:
