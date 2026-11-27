@@ -2,6 +2,23 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 28. A fortnight of alerts that runs out of breath (alerts)
+
+`pytest -q` has one failing test: `test_api_a_fortnight_of_consumption_alerts_each_rule_only_on_days_above_its_own_threshold`. A site
+with an EMAIL rule above 100 kWh and an SMS rule above 150 kWh is sent fourteen days of consumption, and an evaluation part-way through
+fails with `401 token expired after 25 requests; log in again`. The two alert tests before it pass, and they hit the rate limit too.
+The test has a site of its own: Normanton Ropeworks (`1300555145059`, now on QA) has joined the pool.
+
+Find out why and fix it at the root. Read the fake's docstring (Everywhere, Alerts), AGENTS.md (Retries and waiting) and the
+`POST .../evaluations` log lines of the failing test (how many requests did fourteen evaluations take, what did each 429 tell you, and how
+long did the helper wait before sending again?) before you change anything. The 401 tells you the token ran out, not why.
+Done when: the suite is green, `make check` is clean, the test sends the same fourteen days to the same two rules and still expects the
+same six alerts, no evaluation is sent again before the time its 429 asked for has passed (count the 429 lines and read their
+`retry after`), the wait comes from what the server said and not from a number you picked to be long enough, a rate limit that never
+clears still fails within `EVALUATE_CONSUMPTION_TIMEOUT` and says which day was still rate limited (not a `RetryError`), nothing retries a
+401, logs in again or hands out a second token, and you can say in one sentence why the token ran out and where the bug lives (test,
+helper, fixture, constant or factory).
+
 ## 27. A bill for part of a fortnight (invoices)
 
 `pytest -q` has one failing test: `test_api_a_month_is_billed_for_every_kwh_read_in_it`. The site sends fourteen daily reads, bills the
