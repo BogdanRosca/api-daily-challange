@@ -10,7 +10,7 @@ from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
 
-from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_fixed
+from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_exponential, wait_fixed
 
 from resources.constants.timeouts import (
     BILL_MONTH_BACKOFF,
@@ -100,7 +100,7 @@ def _too_many_requests(raised_exception: BaseException) -> bool:
 @retry(
     retry=retry_if_exception(_too_many_requests),
     stop=stop_after_delay(EVALUATE_CONSUMPTION_TIMEOUT),
-    wait=wait_fixed(EVALUATE_CONSUMPTION_BACKOFF),
+    wait=wait_exponential(multiplier=1, min=EVALUATE_CONSUMPTION_BACKOFF),
     reraise=True,
 )
 def evaluate_day(api_client: ControlRoomClient, mpan_core: str, day: str, kwh: str) -> list[str]:
