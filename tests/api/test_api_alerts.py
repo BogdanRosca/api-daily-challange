@@ -4,6 +4,7 @@ import pytest
 
 from helpers.api_test_helpers import create_alert_rule, delete_alert_rule, evaluate_day, list_site_alerts
 from resources.dependencies.control_room_fake import ControlRoomClient
+from resources.enums.alert_enums import AlertChannel
 from resources.factories.alert_rule import AlertRuleFactory
 from resources.utils.test_data_manager import SiteData
 
@@ -35,3 +36,37 @@ class TestApiAlerts:
         assert (triggered_before_delete, triggered_after_delete, alerted_days) == ([alert_rule["id"]], [], ["2026-11-09"]), (
             f"Rule {alert_rule['id']} kept alerting after it was deleted"
         )
+
+    def test_api_a_fortnight_of_consumption_alerts_each_rule_only_on_days_above_its_own_threshold(
+        self, api_client: ControlRoomClient, unique_site: SiteData
+    ) -> None:
+        email_rule = create_alert_rule(api_client, unique_site.mpan, AlertRuleFactory.build(threshold_kwh="100.000"))
+        sms_rule = create_alert_rule(api_client, unique_site.mpan, AlertRuleFactory.build(threshold_kwh="150.000", channel=AlertChannel.SMS))
+        daily_kwh = {
+            "2026-11-16": "90.000",
+            "2026-11-17": "100.000",
+            "2026-11-18": "100.001",
+            "2026-11-19": "95.500",
+            "2026-11-20": "150.000",
+            "2026-11-21": "60.250",
+            "2026-11-22": "58.000",
+            "2026-11-23": "150.001",
+            "2026-11-24": "99.999",
+            "2026-11-25": "88.125",
+            "2026-11-26": "210.000",
+            "2026-11-27": "97.000",
+            "2026-11-28": "64.500",
+            "2026-11-29": "61.000",
+        }
+        for day, kwh in daily_kwh.items():
+            evaluate_day(api_client, unique_site.mpan, day, kwh)
+        alerted = sorted((site_alert["day"], site_alert["channel"]) for site_alert in list_site_alerts(api_client, unique_site.mpan))
+        expected_alerts = [
+            ("2026-11-18", AlertChannel.EMAIL),
+            ("2026-11-20", AlertChannel.EMAIL),
+            ("2026-11-23", AlertChannel.EMAIL),
+            ("2026-11-23", AlertChannel.SMS),
+            ("2026-11-26", AlertChannel.EMAIL),
+            ("2026-11-26", AlertChannel.SMS),
+        ]
+        assert alerted == expected_alerts, f"Rules {email_rule['id']} (EMAIL) and {sms_rule['id']} (SMS) alerted on the wrong days"
