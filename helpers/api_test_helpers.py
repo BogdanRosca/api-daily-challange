@@ -5,10 +5,11 @@ from __future__ import annotations
 import calendar
 import logging
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_type, stop_after_delay, wait_exponential, wait_fixed
 
@@ -347,7 +348,7 @@ def _same_day_months_later(start_day: date, months: int) -> date:
 def renew_contract(api_client: ControlRoomClient, mpan_core: str, expiring_contract: dict[str, Any], renewal_months: int) -> dict[str, Any]:
     """Follows a contract with another of the same type for renewal_months, starting the moment the old one ends."""
     renewal_starts_at = datetime.fromisoformat(expiring_contract["end_at"]) + timedelta(minutes=1)
-    first_day = renewal_starts_at.astimezone(UTC).date()
+    first_day = renewal_starts_at.astimezone(ZoneInfo("Europe/London")).date()
     last_day = _same_day_months_later(first_day, renewal_months) - timedelta(days=1)
     renewal_payload = ContractFactory.build(first_day.isoformat(), last_day.isoformat(), ContractType(expiring_contract["contract_type"]))
     logging.info(f"Renewing {expiring_contract['id']} on {mpan_core} from {first_day} to {last_day}")
