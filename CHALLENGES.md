@@ -2,6 +2,24 @@
 
 Newest first. Each one starts from the commit before it; fix it, commit, then ask for the next.
 
+## 29. A renewal that waits for a refusal to change its mind (contracts)
+
+`pytest -q` has one failing test: `test_api_a_contract_renewed_twice_runs_on_without_a_gap_or_an_overlap[SELL]`. A six-month contract is
+renewed twice with the new `renew_contract` helper. The first renewal goes through. The second takes about five seconds to fail with
+`409 overlaps contract_...`, though the helper already retries a 409. The other contract tests pass. The test has a site of its own:
+Holderness Solar Farm (`1900987655178`, now on QA) has joined the pool.
+
+Find out why and fix it at the root. Read the fake's docstring (Supply contracts), AGENTS.md (Retries and waiting), the docstring of
+`_send_renewal`, and the `Renewing ...` and `POST .../contracts` log lines (which days did each renewal ask for, which contract does the
+409 name, and did anything change between attempts?) before you change anything. Then ask yourself: why did the first renewal work?
+Done when: the suite is green, `make check` is clean, the test still renews the same contract twice for six months and expects the same
+hand-written UK dates, `renew_contract` starts the renewal on the UK day after the expiring contract's last day whatever its `end_at`
+offset (an expiring contract that ends in winter, in summer, on either clock-change day, on 31 December and on 29 February 2028), a
+renewal that really does overlap (a contract already starts on the renewal's first day: try it in a scratch run) fails at once with the
+409 and the contract it overlaps (no wait, no `RetryError`), nothing retries an error that won't fix itself and no constant is left in
+`timeouts.py` that nothing uses, and you can say in one sentence why only the second renewal was refused and where the bug lives (test,
+helper, constant or factory).
+
 ## 28. A fortnight of alerts that runs out of breath (alerts)
 
 `pytest -q` has one failing test: `test_api_a_fortnight_of_consumption_alerts_each_rule_only_on_days_above_its_own_threshold`. A site
