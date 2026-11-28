@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from helpers.api_test_helpers import create_contract, list_site_contracts
+from helpers.api_test_helpers import create_contract, list_site_contracts, renew_contract
 from resources.dependencies.control_room_fake import ApiError, ControlRoomClient
 from resources.enums.contract_enums import ContractType
 from resources.enums.site_enums import SiteType
@@ -14,6 +14,8 @@ from resources.utils.test_data_manager import SiteData
 @pytest.mark.contracts
 @pytest.mark.parametrize("site_type", [SiteType.SELL], indirect=True)
 class TestApiContracts:
+    _renewal_months = 6
+
     @pytest.mark.usefixtures("overlaps_allowed")
     def test_api_overlapping_contracts_are_both_stored_when_overlaps_are_allowed(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
         first_contract = create_contract(api_client, unique_site.mpan, ContractFactory.build("2026-11-01", "2026-11-30"))
@@ -54,3 +56,12 @@ class TestApiContracts:
         fixed_start_dates = [fixed_contract["start_date"] for fixed_contract in list_site_contracts(api_client, unique_site.mpan, ContractType.FIXED)]
         expected_start_dates = [f"{month}-01" for month, contract_type in contract_types_by_month.items() if contract_type == ContractType.FIXED]
         assert fixed_start_dates == expected_start_dates, f"{unique_site.mpan} did not list exactly its FIXED contracts, oldest first"
+
+    def test_api_a_contract_renewed_twice_runs_on_without_a_gap_or_an_overlap(self, api_client: ControlRoomClient, unique_site: SiteData) -> None:
+        first_contract = create_contract(api_client, unique_site.mpan, ContractFactory.build("2026-06-01", "2026-11-30"))
+        first_renewal = renew_contract(api_client, unique_site.mpan, first_contract, self._renewal_months)
+        renew_contract(api_client, unique_site.mpan, first_renewal, self._renewal_months)
+        site_contracts = list_site_contracts(api_client, unique_site.mpan)
+        stored_dates = [(site_contract["start_date"], site_contract["end_date"]) for site_contract in site_contracts]
+        expected_dates = [("2026-06-01", "2026-11-30"), ("2026-12-01", "2027-05-31"), ("2027-06-01", "2027-11-30")]
+        assert stored_dates == expected_dates, f"{unique_site.mpan} did not keep its contract and both renewals back to back"

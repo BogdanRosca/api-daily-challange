@@ -5,7 +5,7 @@ from __future__ import annotations
 import calendar
 import logging
 import uuid
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from http import HTTPStatus
 from typing import Any
@@ -15,6 +15,8 @@ from tenacity import Retrying, retry, retry_if_exception, retry_if_exception_typ
 from resources.constants.timeouts import (
     BILL_MONTH_BACKOFF,
     BILL_MONTH_TIMEOUT,
+    CONTRACT_RENEWAL_BACKOFF,
+    CONTRACT_RENEWAL_TIMEOUT,
     EVALUATE_CONSUMPTION_BACKOFF,
     EVALUATE_CONSUMPTION_TIMEOUT,
     FORECAST_UPLOAD_BACKOFF,
@@ -29,6 +31,7 @@ from resources.enums.contact_enums import ContactRole
 from resources.enums.contract_enums import ContractType, OverlapPolicy
 from resources.enums.forecast_enums import UploadStatus
 from resources.enums.tender_enums import TenderStatus
+from resources.factories.contract import ContractFactory
 
 
 def create_contact(api_client: ControlRoomClient, mpan_core: str, contact_payload: dict[str, Any]) -> dict[str, Any]:
@@ -332,6 +335,38 @@ def list_site_contracts(api_client: ControlRoomClient, mpan_core: str, contract_
         if next_cursor is None:
             return site_contracts
         contracts_page_response = api_client.list_contracts(mpan_core, contract_type=contract_type, cursor=next_cursor)
+
+
+def _same_day_months_later(start_day: date, months: int) -> date:
+    """The same day of the month a number of months on, or that month's last day if it is shorter."""
+    month_index = start_day.month - 1 + months
+    later_year, later_month = start_day.year + month_index // 12, month_index % 12 + 1
+    return start_day.replace(year=later_year, month=later_month, day=min(start_day.day, calendar.monthrange(later_year, later_month)[1]))
+
+
+def renew_contract(api_client: ControlRoomClient, mpan_core: str, expiring_contract: dict[str, Any], renewal_months: int) -> dict[str, Any]:
+    """Follows a contract with another of the same type for renewal_months, starting the moment the old one ends."""
+    renewal_starts_at = datetime.fromisoformat(expiring_contract["end_at"]) + timedelta(minutes=1)
+    first_day = renewal_starts_at.astimezone(UTC).date()
+    last_day = _same_day_months_later(first_day, renewal_months) - timedelta(days=1)
+    renewal_payload = ContractFactory.build(first_day.isoformat(), last_day.isoformat(), ContractType(expiring_contract["contract_type"]))
+    logging.info(f"Renewing {expiring_contract['id']} on {mpan_core} from {first_day} to {last_day}")
+    return _send_renewal(api_client, mpan_core, renewal_payload)
+
+
+def _overlaps_another_contract(raised_exception: BaseException) -> bool:
+    return isinstance(raised_exception, ApiError) and raised_exception.status_code == HTTPStatus.CONFLICT
+
+
+@retry(
+    retry=retry_if_exception(_overlaps_another_contract),
+    stop=stop_after_delay(CONTRACT_RENEWAL_TIMEOUT),
+    wait=wait_fixed(CONTRACT_RENEWAL_BACKOFF),
+    reraise=True,
+)
+def _send_renewal(api_client: ControlRoomClient, mpan_core: str, renewal_payload: dict[str, Any]) -> dict[str, Any]:
+    """The contracts ledger sees a contract's end a moment after it is stored, so a renewal sent straight after can overlap: a 409 is sent again."""
+    return create_contract(api_client, mpan_core, renewal_payload)
 
 
 def set_overlap_policy(api_client: ControlRoomClient, overlap_policy: OverlapPolicy) -> OverlapPolicy:
